@@ -19,6 +19,7 @@ namespace SmartFalcon
         private readonly DiscordSocketClient _client;
         private readonly string token = "OTQzOTI0MTk0NDQ0NDQ3ODE0.Yg6H6Q.fr6q4kv61lV2q-0rs1SuNF94Nr8";
         private readonly ulong otherID = 944029368584388701;
+        private bool isSilent = false;
 
         private Dictionary<ulong, string> callNameList = new Dictionary<ulong, string>();
 
@@ -113,21 +114,45 @@ namespace SmartFalcon
 
             if (isMention)
             {
-#if DEBUG
+//#if DEBUG
                 if (message.Content.Contains("応答せよ"))
                 {
                     await message.Channel.SendMessageAsync("私だ。");
                 }
-#endif
+//#endif
 
 
                 if (message.Content.Contains("こんにちは"))
                 {
                     await message.Channel.SendMessageAsync("こんにちは、" + authorName + "！");
                 }
+                else if (message.Content.Contains("おはよ"))
+                {
+                    await message.Channel.SendMessageAsync("おはよう、" + authorName + "！");
+                }
+                else if (message.Content.Contains("こんばんは"))
+                {
+                    await message.Channel.SendMessageAsync("こんばんは、" + authorName + "！");
+                }
+                else if (message.Content.Contains("おやすみ"))
+                {
+                    await message.Channel.SendMessageAsync("おやすみ、" + authorName + "～...");
+                }
                 else if (message.Content.Contains("ファ・ル・子"))
                 {
                     await message.Channel.SendMessageAsync(authorName + "！応援ありがと～～～！！♡");
+                }
+                else if (message.Content.Contains("静かに"))
+                {
+                    await message.Channel.SendMessageAsync("はーい、しばらく静かにしてます...");
+
+                    isSilent = true;
+                }
+                else if (message.Content.Contains("もういいよ"))
+                {
+                    await message.Channel.SendMessageAsync("はい！ファル子、みんなの会話聞いちゃいます☆");
+
+                    isSilent = false;
                 }
                 else if (message.Content.Contains("好き"))
                 {
@@ -145,6 +170,24 @@ namespace SmartFalcon
                     else if (num == 2)
                     {
                         await message.Channel.SendMessageAsync(authorName + "もファル子のかわいさがだんだんわかってきたね～♡");
+                    }
+                }
+                else if (message.Content.Contains("かわいい") || message.Content.Contains("可愛い"))
+                {
+                    Random rand = new Random();
+                    int num = rand.Next(0, 3);
+
+                    if (num == 0)
+                    {
+                        await message.Channel.SendMessageAsync("えへへ～～、ありがとっ！" + authorName + "！♡");
+                    }
+                    else if (num == 1)
+                    {
+                        await message.Channel.SendMessageAsync("ファル子のかわいさ、もっと伝えちゃうぞ～☆");
+                    }
+                    else if (num == 2)
+                    {
+                        await message.Channel.SendMessageAsync("もう～～、褒めすぎだよ～～っ♡");
                     }
                 }
                 else if (message.Content.Contains("って呼んで"))
@@ -177,6 +220,27 @@ namespace SmartFalcon
                     LoadCallName();
 
                     await message.Channel.SendMessageAsync("は～い、これからは" + callNameList[message.Author.Id] + "って呼ぶね！");
+                }
+                else if (message.Content.Contains("しゃい☆"))
+                {
+                    if (message.Content.Contains("しゃいしゃい☆"))
+                    {
+                        await message.Channel.SendMessageAsync("っしゃいしゃいしゃ～いっ☆");
+                    }
+                    else
+                    {
+                        Random rand = new Random();
+                        int num = rand.Next(0, 2);
+
+                        if (num == 0)
+                        {
+                            await message.Channel.SendMessageAsync("う～～～～...............っしゃい！！");
+                        }
+                        else
+                        {
+                            await message.Channel.SendMessageAsync("っしゃいしゃ～いっ☆");
+                        }
+                    }
                 }
                 else if (message.Content.Contains("占って"))
                 {
@@ -241,6 +305,12 @@ namespace SmartFalcon
             }
             else
             {
+                //静かにしてるよう言われてたら発言を拾わない
+                if (isSilent)
+                {
+                    return;
+                }
+
                 if (message.Content.Contains("アイドル"))
                 {
                     Random rand = new Random();
