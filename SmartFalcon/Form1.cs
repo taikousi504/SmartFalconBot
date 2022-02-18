@@ -10,7 +10,6 @@ using System.Windows.Forms;
 using Discord;
 using Discord.WebSocket;
 using System.Threading;
-using System.Collections.Generic;
 
 namespace SmartFalcon
 {
