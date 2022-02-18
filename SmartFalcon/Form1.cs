@@ -18,6 +18,7 @@ namespace SmartFalcon
     {
         private readonly DiscordSocketClient _client;
         private readonly string token = "OTQzOTI0MTk0NDQ0NDQ3ODE0.Yg6H6Q.fr6q4kv61lV2q-0rs1SuNF94Nr8";
+        private readonly ulong otherID = 944029368584388701;
 
         private Dictionary<ulong, string> callNameList = new Dictionary<ulong, string>();
 
@@ -101,7 +102,7 @@ namespace SmartFalcon
             }
 
             //自分へのメンションか
-            bool isMention = message.Content.Contains(_client.CurrentUser.Id.ToString());
+            bool isMention = message.Content.Contains(_client.CurrentUser.Id.ToString()) || message.Content.Contains(otherID.ToString());
 
             //呼び名
             string authorName = message.Author.Username + "さん";
@@ -143,7 +144,7 @@ namespace SmartFalcon
                     }
                     else if (num == 2)
                     {
-                        await message.Channel.SendMessageAsync(authorName + "もファル子のかわいさがだんだんわかってきましたね～♡");
+                        await message.Channel.SendMessageAsync(authorName + "もファル子のかわいさがだんだんわかってきたね～♡");
                     }
                 }
                 else if (message.Content.Contains("って呼んで"))
@@ -151,6 +152,12 @@ namespace SmartFalcon
                     //って呼んで　までの文字列抜き出し
                     int start = _client.CurrentUser.Mention.Length;
                     string name = message.Content.Substring(start, message.Content.IndexOf("って呼んで") - start);
+
+                    //先頭が半角スペースだったら削除
+                    if (name.StartsWith(" "))
+                    {
+                        name = name.Substring(1);
+                    }
 
                     //既に存在していたら書き換え
                     if (callNameList.ContainsKey(message.Author.Id))
@@ -165,6 +172,9 @@ namespace SmartFalcon
 
                     //テキストファイルに上書き保存
                     SaveCallName();
+
+                    //読み直し
+                    LoadCallName();
 
                     await message.Channel.SendMessageAsync("は～い、これからは" + callNameList[message.Author.Id] + "って呼ぶね！");
                 }
@@ -250,6 +260,25 @@ namespace SmartFalcon
                     }
 
                 }
+                if (message.Content.Contains("ファル子"))
+                {
+                    Random rand = new Random();
+                    int num = rand.Next(0, 3);
+
+                    if (num == 0)
+                    {
+                        await message.Channel.SendMessageAsync("ファル子で～す☆");
+                    }
+                    else if (num == 1)
+                    {
+                        await message.Channel.SendMessageAsync("呼んだ～？☆");
+                    }
+                    else if (num == 2)
+                    {
+                        await message.Channel.SendMessageAsync("はい！ファル子、頑張っちゃう♡");
+                    }
+
+                }
             }
         }
 
@@ -298,7 +327,7 @@ namespace SmartFalcon
         //呼び名セーブ
         private void SaveCallName()
         {
-            StreamWriter sr = new StreamWriter("CallNameList.txt", true);
+            StreamWriter sr = new StreamWriter("CallNameList.txt");
             foreach(var v in callNameList)
             {
                 sr.WriteLine(v.Key + "," + v.Value);
