@@ -424,7 +424,7 @@ namespace SmartFalcon
                             //現在のランク取得
                             int nowRank = GetJankenRanking(message.Author.Id);
 
-                            await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id] + "pt, " + nowRank + "位");
+                            await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id].point + "pt, " + nowRank + "位");
                         }
                         else if (result == 1)
                         {
@@ -452,7 +452,7 @@ namespace SmartFalcon
                             //現在のランク取得
                             int nowRank = GetJankenRanking(message.Author.Id);
 
-                            await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id] + "pt, " + nowRank + "位");
+                            await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id].point + "pt, " + nowRank + "位");
                         }
                         else if (result == 2)
                         {
