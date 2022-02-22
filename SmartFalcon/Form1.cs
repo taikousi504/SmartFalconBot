@@ -15,6 +15,12 @@ using System.Linq;
 
 namespace SmartFalcon
 {
+    public class JankenRankData
+    {
+        public string name { get; set; }
+        public int point { get; set; }
+    }
+
     public partial class Form1 : Form
     {
         private readonly DiscordSocketClient _client;
@@ -23,7 +29,7 @@ namespace SmartFalcon
         private bool isSilent = false;
 
         private Dictionary<ulong, string> callNameList = new Dictionary<ulong, string>();
-        private Dictionary<ulong, int> jankenRankList = new Dictionary<ulong, int>();
+        private Dictionary<ulong, JankenRankData> jankenRankList = new Dictionary<ulong, JankenRankData>();
 
         public Form1()
         {
@@ -314,127 +320,144 @@ namespace SmartFalcon
                 }
                 else if (message.Content.Contains("じゃんけん"))
                 {
-                    //ランダムで手を決める
-                    Random rand = new Random();
-                    int num = rand.Next(0, 3);
-                    int result = -1;
-
-                    string falcoHand = "";
-
-                    //グー
-                    if (num == 0)
+                    //ランキング取得
+                    if (message.Content.Contains("ランキング"))
                     {
-                        if (message.Content.Contains("グー") || message.Content.Contains("ぐー") || message.Content.Contains(":fist:") || message.Content.Contains("✊"))
-                        {
-                            result = 2;
-                        }
-                        else if (message.Content.Contains("チョキ") || message.Content.Contains("ちょき") || message.Content.Contains(":v:") || message.Content.Contains("✌"))
-                        {
-                            result = 1;
-                        }
-                        else if (message.Content.Contains("パー") || message.Content.Contains("ぱー") || message.Content.Contains(":hand_splayed:") || message.Content.Contains("✋"))
-                        {
-                            result = 0;
-                        }
+                        //ランキング取得
+                        string output = GetRankStr();
 
-                        falcoHand = ":fist:";
+                        await message.Channel.SendMessageAsync(output);
                     }
-                    //チョキ
-                    else if (num == 1)
+                    else
                     {
-                        if (message.Content.Contains("グー") || message.Content.Contains("ぐー") || message.Content.Contains(":fist:") || message.Content.Contains("✊"))
+                        //ランダムで手を決める
+                        Random rand = new Random();
+                        int num = rand.Next(0, 3);
+                        int result = -1;
+
+                        string falcoHand = "";
+
+                        //グー
+                        if (num == 0)
                         {
-                            result = 0;
+                            if (message.Content.Contains("グー") || message.Content.Contains("ぐー") || message.Content.Contains(":fist:") || message.Content.Contains("✊"))
+                            {
+                                result = 2;
+                            }
+                            else if (message.Content.Contains("チョキ") || message.Content.Contains("ちょき") || message.Content.Contains(":v:") || message.Content.Contains("✌"))
+                            {
+                                result = 1;
+                            }
+                            else if (message.Content.Contains("パー") || message.Content.Contains("ぱー") || message.Content.Contains(":hand_splayed:") || message.Content.Contains("✋"))
+                            {
+                                result = 0;
+                            }
+
+                            falcoHand = ":fist:";
                         }
-                        else if (message.Content.Contains("チョキ") || message.Content.Contains("ちょき") || message.Content.Contains(":v:") || message.Content.Contains("✌"))
+                        //チョキ
+                        else if (num == 1)
                         {
-                            result = 2;
+                            if (message.Content.Contains("グー") || message.Content.Contains("ぐー") || message.Content.Contains(":fist:") || message.Content.Contains("✊"))
+                            {
+                                result = 0;
+                            }
+                            else if (message.Content.Contains("チョキ") || message.Content.Contains("ちょき") || message.Content.Contains(":v:") || message.Content.Contains("✌"))
+                            {
+                                result = 2;
+                            }
+                            else if (message.Content.Contains("パー") || message.Content.Contains("ぱー") || message.Content.Contains(":hand_splayed:") || message.Content.Contains("✋"))
+                            {
+                                result = 1;
+                            }
+
+                            falcoHand = ":v:";
                         }
-                        else if (message.Content.Contains("パー") || message.Content.Contains("ぱー") || message.Content.Contains(":hand_splayed:") || message.Content.Contains("✋"))
+                        //パー
+                        else if (num == 2)
                         {
-                            result = 1;
-                        }
+                            if (message.Content.Contains("グー") || message.Content.Contains("ぐー") || message.Content.Contains(":fist:") || message.Content.Contains("✊"))
+                            {
+                                result = 1;
+                            }
+                            else if (message.Content.Contains("チョキ") || message.Content.Contains("ちょき") || message.Content.Contains(":v:") || message.Content.Contains("✌"))
+                            {
+                                result = 0;
+                            }
+                            else if (message.Content.Contains("パー") || message.Content.Contains("ぱー") || message.Content.Contains(":hand_splayed:") || message.Content.Contains("✋"))
+                            {
+                                result = 2;
+                            }
 
-                        falcoHand = ":v:";
-                    }
-                    //パー
-                    else if (num == 2)
-                    {
-                        if (message.Content.Contains("グー") || message.Content.Contains("ぐー") || message.Content.Contains(":fist:") || message.Content.Contains("✊"))
-                        {
-                            result = 1;
-                        }
-                        else if (message.Content.Contains("チョキ") || message.Content.Contains("ちょき") || message.Content.Contains(":v:") || message.Content.Contains("✌"))
-                        {
-                            result = 0;
-                        }
-                        else if (message.Content.Contains("パー") || message.Content.Contains("ぱー") || message.Content.Contains(":hand_splayed:") || message.Content.Contains("✋"))
-                        {
-                            result = 2;
-                        }
-
-                        falcoHand = ":hand_splayed:";
-                    }
-
-                    //手を指定してなかったら指定するようにいう
-                    if (result == -1)
-                    {
-                        await message.Channel.SendMessageAsync("じゃんけんの手を指定してね！\n例:じゃんけん グー");
-                                        }
-                    else if (result == 0)
-                    {
-                        await message.Channel.SendMessageAsync(falcoHand + "\nファル子の負け～～...\n悔しい～～！ 次は勝つからね！！");
-
-
-                        //既に存在していたら書き換え
-                        if (jankenRankList.ContainsKey(message.Author.Id))
-                        {
-                            //ポイント加算
-                            jankenRankList[message.Author.Id] += 10;
-                        }
-                        //なければ追加
-                        else
-                        {
-                            jankenRankList.Add(message.Author.Id, 10);
-                        }
-
-                        SaveJankenRank();
-
-                        LoadJankenRank();
-
-                        //現在のランク取得
-                        int nowRank = GetJankenRanking(message.Author.Id);
-
-                        await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id] + "pt, " + nowRank + "位");
-                    }
-                    else if (result == 1)
-                    {
-                        await message.Channel.SendMessageAsync(falcoHand + "\nファル子の勝ち～！！ やった～～～☆");
-
-                        //既に存在していたら書き換え
-                        if (jankenRankList.ContainsKey(message.Author.Id))
-                        {
-                            //ポイント減算
-                            jankenRankList[message.Author.Id] -= 5;
-                        }
-                        //なければ追加
-                        else
-                        {
-                            jankenRankList.Add(message.Author.Id, -5);
+                            falcoHand = ":hand_splayed:";
                         }
 
-                        SaveJankenRank();
+                        //手を指定してなかったら指定するようにいう
+                        if (result == -1)
+                        {
+                            await message.Channel.SendMessageAsync("じゃんけんの手を指定してね！\n例:じゃんけん グー");
+                        }
+                        else if (result == 0)
+                        {
+                            await message.Channel.SendMessageAsync(falcoHand + "\nファル子の負け～～...\n悔しい～～！ 次は勝つからね！！");
 
-                        LoadJankenRank();
 
-                        //現在のランク取得
-                        int nowRank = GetJankenRanking(message.Author.Id);
+                            //既に存在していたら書き換え
+                            if (jankenRankList.ContainsKey(message.Author.Id))
+                            {
+                                //ポイント加算
+                                jankenRankList[message.Author.Id].point += 10;
+                            }
+                            //なければ追加
+                            else
+                            {
+                                JankenRankData data = new JankenRankData();
+                                data.name = message.Author.Username;
+                                data.point = 10;
+                                jankenRankList.Add(message.Author.Id, data);
+                            }
 
-                        await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id] + "pt, " + nowRank + "位");
-                    }
-                    else if (result == 2)
-                    {
-                        await message.Channel.SendMessageAsync(falcoHand + "\nあいこ！もう一回じゃんけんしよ！");
+                            SaveJankenRank();
+
+                            LoadJankenRank();
+
+                            //現在のランク取得
+                            int nowRank = GetJankenRanking(message.Author.Id);
+
+                            await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id] + "pt, " + nowRank + "位");
+                        }
+                        else if (result == 1)
+                        {
+                            await message.Channel.SendMessageAsync(falcoHand + "\nファル子の勝ち～！！ やった～～～☆");
+
+                            //既に存在していたら書き換え
+                            if (jankenRankList.ContainsKey(message.Author.Id))
+                            {
+                                //ポイント減算
+                                jankenRankList[message.Author.Id].point -= 5;
+                            }
+                            //なければ追加
+                            else
+                            {
+                                JankenRankData data = new JankenRankData();
+                                data.name = message.Author.Username;
+                                data.point = -5;
+                                jankenRankList.Add(message.Author.Id, data);
+                            }
+
+                            SaveJankenRank();
+
+                            LoadJankenRank();
+
+                            //現在のランク取得
+                            int nowRank = GetJankenRanking(message.Author.Id);
+
+                            await message.Channel.SendMessageAsync("現在のポイント:" + jankenRankList[message.Author.Id] + "pt, " + nowRank + "位");
+                        }
+                        else if (result == 2)
+                        {
+                            await message.Channel.SendMessageAsync(falcoHand + "\nあいこ！もう一回じゃんけんしよ！");
+                        }
                     }
                 }
             }
@@ -571,12 +594,16 @@ namespace SmartFalcon
                     id = 0;
                 }
 
-                int point = int.Parse(str[1]);
+                string name = str[1];
+                int point = int.Parse(str[2]);
 
                 //追加
                 if (id != 0)
                 {
-                    jankenRankList.Add(id, point);
+                    JankenRankData data = new JankenRankData();
+                    data.name = name;
+                    data.point = point;
+                    jankenRankList.Add(id, data);
                 }
             }
 
@@ -589,7 +616,7 @@ namespace SmartFalcon
             StreamWriter sr = new StreamWriter("JankenRankList.txt");
             foreach (var v in jankenRankList)
             {
-                sr.WriteLine(v.Key + "," + v.Value);
+                sr.WriteLine(v.Key + "," + v.Value.name + "," + v.Value.point);
             }
             sr.Close();
         }
@@ -604,19 +631,40 @@ namespace SmartFalcon
             }
 
             // ソート
-            var sorted = jankenRankList.OrderByDescending(pair => pair.Key);
+            var sorted = jankenRankList.OrderByDescending(pair => pair.Value.point);
             var list = sorted.ToDictionary(x => x.Key);
 
-            for (int i = 0; i < list.Count; i++)
+            int count = 1;
+            foreach (var v in list)
             {
-                if (list[id].Key == id)
+                if (v.Key == id)
                 {
-                    return i + 1;
+                    return count;
                 }
+
+                count++;
             }
 
             return -1;
         }
 
+        private string GetRankStr()
+        {
+            string result = "---ファル子じゃんけんランキング---\n";
+
+            // ソート
+            var sorted = jankenRankList.OrderByDescending(pair => pair.Value.point);
+            var list = sorted.ToDictionary(x => x.Key);
+
+            int count = 1;
+            foreach (var v in list)
+            {
+                result += count + "位:" + v.Value.Value.name + " " + v.Value.Value.point + "pt\n";
+
+                count++;
+            }
+
+            return result;
+        }
     }
 }
