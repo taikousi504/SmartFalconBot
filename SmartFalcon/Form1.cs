@@ -24,8 +24,8 @@ namespace SmartFalcon
     public partial class Form1 : Form
     {
         private readonly DiscordSocketClient _client;
-        private readonly string token = "OTQzOTI0MTk0NDQ0NDQ3ODE0.Yg6H6Q.fr6q4kv61lV2q-0rs1SuNF94Nr8";
         private readonly ulong otherID = 944029368584388701;
+        private string token = "";
         private bool isSilent = false;
 
         private Dictionary<ulong, string> callNameList = new Dictionary<ulong, string>();
@@ -36,7 +36,7 @@ namespace SmartFalcon
             this.ShowInTaskbar = false;
 
             NotifyIcon icon = new NotifyIcon();
-            icon.Icon = new Icon("icon.ico");
+            icon.Icon = new Icon("Resources/icon.ico");
             icon.Visible = true;
             icon.Text = "スマートファルコンbot";
 
@@ -46,6 +46,9 @@ namespace SmartFalcon
             menuItem.Click += new EventHandler(Close_Click);
             menu.Items.Add(menuItem);
             icon.ContextMenuStrip = menu;
+
+            //トークン取得
+            GetToken();
 
             //呼び名読み込み
             LoadCallName();
@@ -62,6 +65,17 @@ namespace SmartFalcon
             Login();
 
             InitializeComponent();
+        }
+
+        private void GetToken()
+        {
+            //ファイル読み込み
+            StreamReader sr = new StreamReader("Resources/token.txt");
+
+            //1行目のみ使用
+            token = sr.ReadLine();
+
+            sr.Close();
         }
 
         private async void Login()
@@ -517,13 +531,13 @@ namespace SmartFalcon
             callNameList.Clear();
 
             //ファイルがなかったらスルー
-            if (!File.Exists("CallNameList.txt"))
+            if (!File.Exists("Resources/CallNameList.txt"))
             {
                 return;
             }
 
             //ファイル読み込み
-            StreamReader sr = new StreamReader("CallNameList.txt");
+            StreamReader sr = new StreamReader("Resources/CallNameList.txt");
 
             while (!sr.EndOfStream)
             {
@@ -555,7 +569,7 @@ namespace SmartFalcon
         //呼び名セーブ
         private void SaveCallName()
         {
-            StreamWriter sr = new StreamWriter("CallNameList.txt");
+            StreamWriter sr = new StreamWriter("Resources/CallNameList.txt");
             foreach(var v in callNameList)
             {
                 sr.WriteLine(v.Key + "," + v.Value);
@@ -570,13 +584,13 @@ namespace SmartFalcon
             jankenRankList.Clear();
 
             //ファイルがなかったらスルー
-            if (!File.Exists("JankenRankList.txt"))
+            if (!File.Exists("Resources/JankenRankList.txt"))
             {
                 return;
             }
 
             //ファイル読み込み
-            StreamReader sr = new StreamReader("JankenRankList.txt");
+            StreamReader sr = new StreamReader("Resources/JankenRankList.txt");
 
             while (!sr.EndOfStream)
             {
@@ -613,7 +627,7 @@ namespace SmartFalcon
         //じゃんけんランキングセーブ
         private void SaveJankenRank()
         {
-            StreamWriter sr = new StreamWriter("JankenRankList.txt");
+            StreamWriter sr = new StreamWriter("Resources/JankenRankList.txt");
             foreach (var v in jankenRankList)
             {
                 sr.WriteLine(v.Key + "," + v.Value.name + "," + v.Value.point);
@@ -659,7 +673,7 @@ namespace SmartFalcon
             int count = 1;
             foreach (var v in list)
             {
-                result += count + "位:" + v.Value.Value.name + " " + v.Value.Value.point + "pt\n";
+                result += count + "位:" + v.Value.Value.name + "\t" + v.Value.Value.point + "pt\n";
 
                 count++;
             }
