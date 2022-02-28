@@ -314,15 +314,45 @@ namespace SmartFalcon
                         send += "**凶**...\nお、落ち込まないで！いいことあるよ...！きっと！";
                     }
                     //大凶 (4 /100)
-                    else if (num < 99)
+                    else if (num < 98)
                     {
                         send += "**大凶**......\n今日は身の周りに注意かも...";
                     }
                     //超大吉 (1/100)
-                    else if (num < 100)
+                    else if (num < 99)
                     {
                         send += "**超大吉**！？！？\nえ～～～っ！！なにこれ！！すごすぎるよ～～！！！\n今日ガシャを引いたらもしかしちゃうかも！？！？";
                     }
+                    //死 (1/100)
+                    else if (num < 100)
+                    {
+                        send += "**......**\nちょ、ちょっとファル子の口からは言えないかなあ......あはははは...\n今日はおうちから出ないほうがいいかもね...？";
+                    }
+
+                    //ラッキーキャラ
+                    rand = new Random(seed + 1);
+                    num = rand.Next(0, 88);
+
+                    send += "\n\nラッキーキャラ：" + GetRndUmaName(num);
+
+                    //ラッキー適正
+                    //バ場
+                    rand = new Random(seed + 2);
+                    num = rand.Next(0, 2);
+
+                    send += "\nラッキー適正：" + GetRndFieldName(num);
+
+                    //距離
+                    rand = new Random(seed + 3);
+                    num = rand.Next(0, 5);
+
+                    send += " " + GetRndDistanceName(num);
+
+                    //脚質
+                    rand = new Random(seed + 4);
+                    num = rand.Next(0, 4);
+
+                    send += " " + GetRndLegName(num);
 
                     //送信
                     await message.Channel.SendMessageAsync(send);
@@ -474,6 +504,7 @@ namespace SmartFalcon
                         }
                     }
                 }
+
             }
             else
             {
@@ -505,7 +536,7 @@ namespace SmartFalcon
                 else if (message.Content.Contains("ファル子"))
                 {
                     Random rand = new Random();
-                    int num = rand.Next(0, 3);
+                    int num = rand.Next(0, 4);
 
                     if (num == 0)
                     {
@@ -519,7 +550,10 @@ namespace SmartFalcon
                     {
                         await message.Channel.SendMessageAsync("はい！ファル子、頑張っちゃう♡");
                     }
-
+                    else if (num == 3)
+                    {
+                        await message.Channel.SendMessageAsync("ちらっ...:eyes:");
+                    }
                 }
             }
         }
@@ -679,6 +713,422 @@ namespace SmartFalcon
             }
 
             return result;
+        }
+
+        private string GetRndUmaName(int num)
+        {
+            if (num == 0)
+            {
+                return "スペシャルウィーク";
+            }
+            else if (num == 1)
+            {
+                return "サイレンススズカ";
+            }
+            else if (num == 2)
+            {
+                return "トウカイテイオー";
+            }
+            else if (num == 3)
+            {
+                return "マルゼンスキー";
+            }
+            else if (num == 4)
+            {
+                return "フジキセキ";
+            }
+            else if (num == 5)
+            {
+                return "オグリキャップ";
+            }
+            else if (num == 6)
+            {
+                return "ゴールドシップ";
+            }
+            else if (num == 7)
+            {
+                return "ウオッカ";
+            }
+            else if (num == 8)
+            {
+                return "ダイワスカーレット";
+            }
+            else if (num == 9)
+            {
+                return "タイキシャトル";
+            }
+            else if (num == 10)
+            {
+                return "グラスワンダー";
+            }
+            else if (num == 11)
+            {
+                return "ヒシアマゾン";
+            }
+            else if (num == 12)
+            {
+                return "メジロマックイーン";
+            }
+            else if (num == 13)
+            {
+                return "エルコンドルパサー";
+            }
+            else if (num == 14)
+            {
+                return "テイエムオペラオー";
+            }
+            else if (num == 15)
+            {
+                return "ナリタブライアン";
+            }
+            else if (num == 16)
+            {
+                return "シンボリルドルフ";
+            }
+            else if (num == 17)
+            {
+                return "エアグルーヴ";
+            }
+            else if (num == 18)
+            {
+                return "アグネスデジタル";
+            }
+            else if (num == 19)
+            {
+                return "タマモクロス";
+            }
+            else if (num == 20)
+            {
+                return "セイウンスカイ";
+            }
+            else if (num == 21)
+            {
+                return "ファインモーション";
+            }
+            else if (num == 22)
+            {
+                return "ビワハヤヒデ";
+            }
+            else if (num == 23)
+            {
+                return "マヤノトップガン";
+            }
+            else if (num == 24)
+            {
+                return "マンハッタンカフェ";
+            }
+            else if (num == 25)
+            {
+                return "ミホノブルボン";
+            }
+            else if (num == 26)
+            {
+                return "メジロライアン";
+            }
+            else if (num == 27)
+            {
+                return "ヒシアケボノ";
+            }
+            else if (num == 28)
+            {
+                return "ユキノビジン";
+            }
+            else if (num == 29)
+            {
+                return "ライスシャワー";
+            }
+            else if (num == 30)
+            {
+                return "アイネスフウジン";
+            }
+            else if (num == 31)
+            {
+                return "アグネスタキオン";
+            }
+            else if (num == 32)
+            {
+                return "アドマイヤベガ";
+            }
+            else if (num == 33)
+            {
+                return "イナリワン";
+            }
+            else if (num == 34)
+            {
+                return "ウイニングチケット";
+            }
+            else if (num == 35)
+            {
+                return "エアシャカール";
+            }
+            else if (num == 36)
+            {
+                return "カレンチャン";
+            }
+            else if (num == 37)
+            {
+                return "エイシンフラッシュ";
+            }
+            else if (num == 38)
+            {
+                return "カワカミプリンセス";
+            }
+            else if (num == 39)
+            {
+                return "ゴールドシチー";
+            }
+            else if (num == 40)
+            {
+                return "シーキングザパール";
+            }
+            else if (num == 41)
+            {
+                return "サクラバクシンオー";
+            }
+            else if (num == 42)
+            {
+                return "シンコウウインディ";
+            }
+            else if (num == 43)
+            {
+                return "スイープトウショウ";
+            }
+            else if (num == 44)
+            {
+                return "スーパークリーク";
+            }
+            else if (num == 45)
+            {
+                return "スマートファルコン";
+            }
+            else if (num == 46)
+            {
+                return "ゼンノロブロイ";
+            }
+            else if (num == 47)
+            {
+                return "トーセンジョーダン";
+            }
+            else if (num == 48)
+            {
+                return "ナカヤマフェスタ";
+            }
+            else if (num == 49)
+            {
+                return "ナリタタイシン";
+            }
+            else if (num == 50)
+            {
+                return "ニシノフラワー";
+            }
+            else if (num == 51)
+            {
+                return "ハルウララ";
+            }
+            else if (num == 52)
+            {
+                return "バンブーメモリー";
+            }
+            else if (num == 53)
+            {
+                return "マーベラスサンデー";
+            }
+            else if (num == 54)
+            {
+                return "ビコーペガサス";
+            }
+            else if (num == 55)
+            {
+                return "マチカネフクキタル";
+            }
+            else if (num == 56)
+            {
+                return "ミスターシービー";
+            }
+            else if (num == 57)
+            {
+                return "メイショウドトウ";
+            }
+            else if (num == 58)
+            {
+                return "メジロドーベル";
+            }
+            else if (num == 59)
+            {
+                return "ナイスネイチャ";
+            }
+            else if (num == 60)
+            {
+                return "キングヘイロー";
+            }
+            else if (num == 61)
+            {
+                return "マチカネタンホイザ";
+            }
+            else if (num == 62)
+            {
+                return "イクノディクタス";
+            }
+            else if (num == 63)
+            {
+                return "メジロパーマー";
+            }
+            else if (num == 64)
+            {
+                return "ダイタクヘリオス";
+            }
+            else if (num == 65)
+            {
+                return "ツインターボ";
+            }
+            else if (num == 66)
+            {
+                return "サトノダイヤモンド";
+            }
+            else if (num == 67)
+            {
+                return "キタサンブラック";
+            }
+            else if (num == 68)
+            {
+                return "サクラチヨノオー";
+            }
+            else if (num == 69)
+            {
+                return "シリウスシンボリ";
+            }
+            else if (num == 70)
+            {
+                return "メジロアルダン";
+            }
+            else if (num == 71)
+            {
+                return "ヤエノムテキ";
+            }
+            else if (num == 72)
+            {
+                return "メジロブライト";
+            }
+            else if (num == 73)
+            {
+                return "サクラローレル";
+            }
+            else if (num == 74)
+            {
+                return "ナリタトップロード";
+            }
+            else if (num == 75)
+            {
+                return "ヤマニンゼファー";
+            }
+            else if (num == 76)
+            {
+                return "アストンマーチャン";
+            }
+            else if (num == 77)
+            {
+                return "？？？(黒髪のほう)";
+            }
+            else if (num == 78)
+            {
+                return "？？？(帽子のほう)";
+            }
+            else if (num == 79)
+            {
+                return "ハッピーミーク";
+            }
+            else if (num == 80)
+            {
+                return "ビターグラッセ";
+            }
+            else if (num == 81)
+            {
+                return "リトルココン";
+            }
+            else if (num == 82)
+            {
+                return "駿川たずな";
+            }
+            else if (num == 83)
+            {
+                return "秋川やよい";
+            }
+            else if (num == 84)
+            {
+                return "乙名史悦子";
+            }
+            else if (num == 85)
+            {
+                return "桐生院葵";
+            }
+            else if (num == 86)
+            {
+                return "安心沢刺々美";
+            }
+            else if (num == 87)
+            {
+                return "樫本理子";
+            }
+            else
+            {
+                return "全員♡";
+            }
+        }
+
+        private string GetRndFieldName(int num)
+        {
+            if (num < 4)
+            {
+                return "芝";
+            }
+            else
+            {
+                return "ダート";
+            }
+        }
+
+        private string GetRndDistanceName(int num)
+        {
+            if (num == 0)
+            {
+                return "短距離";
+            }
+            else if (num == 1)
+            {
+                return "マイル";
+            }
+            else if (num == 2)
+            {
+                return "中距離";
+            }
+            else if (num == 3)
+            {
+                return "長距離";
+            }
+            else
+            {
+                return "ダート";
+            }
+        }
+
+        private string GetRndLegName(int num)
+        {
+            if (num == 0)
+            {
+                return "逃げ";
+            }
+            else if (num == 1)
+            {
+                return "先行";
+            }
+            else if (num == 2)
+            {
+                return "差し";
+            }
+            else
+            {
+                return "追込";
+            }
         }
     }
 }
