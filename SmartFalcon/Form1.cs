@@ -25,6 +25,7 @@ namespace SmartFalcon
     {
         private readonly DiscordSocketClient _client;
         private readonly ulong otherID = 944029368584388701;
+        private readonly ulong serverID = 842810363304869909;
         private string token = "";
         private bool isSilent = false;
 
@@ -61,10 +62,34 @@ namespace SmartFalcon
             _client.Ready += onReady;
             _client.JoinedGuild += JoinedGuild;
             _client.MessageReceived += onMessage;
+            _client.UserVoiceStateUpdated += UserVoiceStateUpdated;
 
             Login();
 
             InitializeComponent();
+        }
+
+        private Task UserVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketVoiceState after)
+        {
+            if (before.VoiceChannel == null)
+            {
+                return Task.CompletedTask;
+            }
+
+            //寝落ち用チャンネルから抜けたら
+            if (before.VoiceChannel.Id == 944591623952687104)
+            {
+                //呼び名
+                string authorName = user.Username + "さん";
+                if (callNameList.ContainsKey(user.Id))
+                {
+                    authorName = callNameList[user.Id];
+                }
+
+                _client.GetGuild(serverID).GetTextChannel(944295014400426004).SendMessageAsync(user.Mention + " おはよう、" + authorName + "。いい夢見れた？");
+            }
+
+            return Task.CompletedTask;
         }
 
         private void GetToken()
@@ -103,6 +128,7 @@ namespace SmartFalcon
             return Task.CompletedTask;
         }
 
+
         //参加時テキスト
         private async Task JoinedGuild(SocketGuild socketGuild)
         {
@@ -139,12 +165,12 @@ namespace SmartFalcon
 
             if (isMention)
             {
-//#if DEBUG
+                //#if DEBUG
                 if (message.Content.Contains("応答せよ"))
                 {
                     await message.Channel.SendMessageAsync("私だ。");
                 }
-//#endif
+                //#endif
 
 
                 if (message.Content.Contains("こんにちは"))
@@ -338,15 +364,15 @@ namespace SmartFalcon
                     //ラッキー適正
                     //バ場
                     rand = new Random(seed + 2);
-                    num = rand.Next(0, 2);
+                    num = rand.Next(0, 5);
 
                     send += "\nラッキー適正：" + GetRndFieldName(num);
 
                     //距離
                     rand = new Random(seed + 3);
-                    num = rand.Next(0, 5);
+                    num = rand.Next(0, 4);
 
-                    send += " " + GetRndDistanceName(num);
+                    send += " " + GetRndDistanceName(num, GetRndFieldName(num));
 
                     //脚質
                     rand = new Random(seed + 4);
@@ -504,7 +530,24 @@ namespace SmartFalcon
                         }
                     }
                 }
+                else if (message.Content.Contains("一発育成杯"))
+                {
+                    if (message.Content.Contains("トロフィー"))
+                    {
+                        string output = "---サークル内一発育成杯 トロフィー一覧---\n";
 
+                        output += "第一回\tマヤノトップガン(花嫁)\t中距離\tりゅう\n";
+                        output += "第二回\tウオッカ\tマイル\tコーシー\n";
+                        output += "第三回\tメジロマックイーン\t長距離\tりゅう\n";
+
+                        await message.Channel.SendMessageAsync(output);
+                    }
+                    else if (message.Content.Contains("ルール"))
+                    {
+                        await message.Channel.SendMessageAsync("一発育成杯のルールはこの投稿を見てね～☆");
+                        await message.Channel.SendMessageAsync("https://discord.com/channels/842810363304869909/950089196176019486/950090352101060708");
+                    }
+                }
             }
             else
             {
@@ -555,6 +598,20 @@ namespace SmartFalcon
                         await message.Channel.SendMessageAsync("ちらっ...:eyes:");
                     }
                 }
+
+
+                //ランダムでリアクションを付ける
+                Random randReact = new Random();
+                int numReact = randReact.Next(0, 50);
+
+                //1/50の確率で
+                if (numReact == 0)
+                {
+                    var emote = Emote.Parse("<:emoji_7:939189407016177684>");
+
+                    await message.AddReactionAsync(emote);
+                }
+
             }
         }
 
@@ -1087,7 +1144,7 @@ namespace SmartFalcon
             }
         }
 
-        private string GetRndDistanceName(int num)
+        private string GetRndDistanceName(int num, string field)
         {
             if (num == 0)
             {
@@ -1101,13 +1158,16 @@ namespace SmartFalcon
             {
                 return "中距離";
             }
-            else if (num == 3)
-            {
-                return "長距離";
-            }
             else
             {
-                return "ダート";
+                if (field == "芝")
+                {
+                    return "長距離";
+                }
+                else
+                {
+                    return "マイル";
+                }
             }
         }
 
