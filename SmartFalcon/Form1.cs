@@ -21,21 +21,44 @@ namespace SmartFalcon
         public int point { get; set; }
     }
 
+    public class IppatsuIkuseiHai
+    {
+        public List<string> nameList;
+        public List<int> scoreList;
+
+        public bool isStart { get; set; }
+
+        public int raceCount { get; set; }
+    }
+
     public partial class Form1 : Form
     {
+        //クライアント
         private readonly DiscordSocketClient _client;
+        //ロールでのメンションに反応できるようにするため
         private readonly ulong otherID = 944029368584388701;
+        //サーバーID
         private readonly ulong serverID = 842810363304869909;
+        //トークン
         private string token = "";
+        //静かにするモードか
         private bool isSilent = false;
 
+        //呼び名リスト
         private Dictionary<ulong, string> callNameList = new Dictionary<ulong, string>();
+        //じゃんけんランキングリスト
         private Dictionary<ulong, JankenRankData> jankenRankList = new Dictionary<ulong, JankenRankData>();
+
+        //一発育成杯計算用
+        private IppatsuIkuseiHai ippatsuIkuseiHai = new IppatsuIkuseiHai();
+
 
         public Form1()
         {
+            //タスクバーに表示しない
             this.ShowInTaskbar = false;
 
+            //右下に表示させるためのコード
             NotifyIcon icon = new NotifyIcon();
             icon.Icon = new Icon("Resources/icon.ico");
             icon.Visible = true;
@@ -57,6 +80,11 @@ namespace SmartFalcon
             //じゃんけんランク読み込み
             LoadJankenRank();
 
+            //一発育成杯リスト
+            ippatsuIkuseiHai.nameList = new List<string>();
+            ippatsuIkuseiHai.scoreList = new List<int>();
+
+            //クライアント設定
             _client = new DiscordSocketClient();
             _client.Log += Log;
             _client.Ready += onReady;
@@ -64,8 +92,10 @@ namespace SmartFalcon
             _client.MessageReceived += onMessage;
             _client.UserVoiceStateUpdated += UserVoiceStateUpdated;
 
+            //ログイン
             Login();
 
+            //アプリケーション初期化
             InitializeComponent();
         }
 
@@ -356,26 +386,22 @@ namespace SmartFalcon
                     }
 
                     //ラッキーキャラ
-                    rand = new Random(seed + 1);
                     num = rand.Next(0, 88);
 
                     send += "\n\nラッキーキャラ：" + GetRndUmaName(num);
 
                     //ラッキー適正
                     //バ場
-                    rand = new Random(seed + 2);
                     num = rand.Next(0, 5);
 
                     send += "\nラッキー適正：" + GetRndFieldName(num);
 
                     //距離
-                    rand = new Random(seed + 3);
                     num = rand.Next(0, 4);
 
                     send += " " + GetRndDistanceName(num, GetRndFieldName(num));
 
                     //脚質
-                    rand = new Random(seed + 4);
                     num = rand.Next(0, 4);
 
                     send += " " + GetRndLegName(num);
@@ -530,19 +556,271 @@ namespace SmartFalcon
                         }
                     }
                 }
-                else if (message.Content.Contains("一発育成杯"))
+                else if (message.Content.Contains("IIH"))
                 {
-                    if (message.Content.Contains("トロフィー"))
+                    //一発育成杯を開始
+                    if (message.Content.Contains("start"))
+                    {
+                        bool isThrowException = false;
+
+                        string output = "一発育成杯を始めるよ～！\n参加者:";
+
+                        if (ippatsuIkuseiHai.isStart == true)
+                        {
+                            output = "開催中の大会を中断して、新しく" + output;
+                        }
+
+                        //一応リセット
+                        ResetIppatsuIkuseiHai();
+
+                        //スタート
+                        ippatsuIkuseiHai.isStart = true;
+
+
+                        //参加者登録
+                        //IIH start 名前1 名前2 名前3...という形式
+                        try
+                        {
+                            string nameStr = message.Content.Substring(message.Content.IndexOf("start") + 6);
+
+                            while (nameStr.Length != 0)
+                            {
+                                string name = "";
+
+                                    int length = nameStr.IndexOf(" ");
+
+                                    //最後の名前
+                                    if (length == -1)
+                                    {
+                                        name = nameStr;
+                                        length = 0;
+                                    }
+                                    else
+                                    {
+                                        name = nameStr.Substring(0, length);
+                                    }
+
+                                    //名前と初期スコアを追加
+                                    ippatsuIkuseiHai.nameList.Add(name);
+                                    ippatsuIkuseiHai.scoreList.Add(0);
+
+                                    nameStr = nameStr.Substring(length + 1);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            isThrowException = true;
+                        }
+
+                        //参加者は...誰一人...来ませんでした...の時と例外が投げられたときの処理
+                        if (ippatsuIkuseiHai.nameList.Count == 0 || isThrowException == true)
+                        {
+                            await message.Channel.SendMessageAsync(
+                                "うーん...参加者をうまく読み取れなかったから、参加者名を正しく入力して欲しいな。\n" +
+                                "例:「IIH start 名前1 名前2 名前3」");
+
+                            ResetIppatsuIkuseiHai();
+                        }
+                        //参加者1人のとき
+                        else if (ippatsuIkuseiHai.nameList.Count == 1)
+                        {
+                            await message.Channel.SendMessageAsync("参加者が1人じゃ大会にならないよ～:sweat_drops:");
+                            ResetIppatsuIkuseiHai();
+                        }
+                        else
+                        {
+                            foreach (var v in ippatsuIkuseiHai.nameList)
+                            {
+                                output += v + "、";
+                            }
+
+                            //最後の「、」を取り除く
+                            output = output.Substring(0, output.Length - 1);
+
+                            await message.Channel.SendMessageAsync(output);
+                        }
+
+                    }
+                    //一発育成杯を終了(結果表示)
+                    else if (message.Content.Contains("end"))
+                    {
+                        if (ippatsuIkuseiHai.isStart == false)
+                        {
+                            await message.Channel.SendMessageAsync("まだ一発育成杯が開催されてないみたい...");
+                        }
+                        else
+                        {
+                            string output = "結果は......！\n";
+                            List<string> winnerList = new List<string>();
+                            int maxScore = 0;
+
+                            //内訳出力
+                            for (int i = 0; i < ippatsuIkuseiHai.nameList.Count; i++)
+                            {
+                                output += ippatsuIkuseiHai.nameList[i] + "\t" + ippatsuIkuseiHai.scoreList[i] + "pt\n";
+
+                                //最高得点を記録
+                                if (ippatsuIkuseiHai.scoreList[i] > maxScore)
+                                {
+                                    maxScore = ippatsuIkuseiHai.scoreList[i];
+                                }
+                            }
+
+                            //優勝者をリストに入れる
+                            for (int i = 0; i < ippatsuIkuseiHai.nameList.Count; i++)
+                            {
+                                if (ippatsuIkuseiHai.scoreList[i] == maxScore)
+                                {
+                                    winnerList.Add(ippatsuIkuseiHai.nameList[i]);
+                                }
+                            }
+
+                            output += "\n優勝者は......";
+
+                            //優勝者出力
+                            foreach (var v in winnerList)
+                            {
+                                output += "「" + v + "」、";
+                            }
+
+                            //最後の「、」を取り除く
+                            output = output.Substring(0, output.Length - 1);
+
+                            output += "！！！\n優勝おめでと～～～！！！☆☆";
+
+                            await message.Channel.SendMessageAsync(output);
+
+                            //一応リセット
+                            ResetIppatsuIkuseiHai();
+
+                        }
+                    }
+                    //開催中の一発育成杯をキャンセルする
+                    else if (message.Content.Contains("cancel"))
+                    {
+                        if (ippatsuIkuseiHai.isStart == false)
+                        {
+                            await message.Channel.SendMessageAsync("一発育成杯が開催されていなかったみたい！");
+                        }
+                        else
+                        {
+                            //リセット
+                            ResetIppatsuIkuseiHai();
+
+                            await message.Channel.SendMessageAsync("開催中だった一発育成杯を中止したよ！");
+                        }
+                    }
+                    else if (message.Content.Contains("save"))
+                    {
+                        //インデックス
+                        int index = 0;
+                        //登録するスコアリスト
+                        List<int> saveScoreList = new List<int>();
+                        //例外処理が投げられたか
+                        bool isThrowException = false;
+                        //参加者数
+                        int numParticipant = ippatsuIkuseiHai.nameList.Count;
+
+                        //処理に使用する文字列
+                        try
+                        {
+                            string scoreStr = message.Content.Substring(message.Content.IndexOf("save") + 5);
+
+                            while (scoreStr.Length != 0)
+                            {
+                                string strScore = "";
+
+                                int length = scoreStr.IndexOf(" ");
+
+                                //最後の名前
+                                if (length == -1)
+                                {
+                                    strScore = scoreStr;
+                                    length = 0;
+                                }
+                                else
+                                {
+                                    strScore = scoreStr.Substring(0, length);
+                                }
+
+                                int score = numParticipant + 1 - int.Parse(strScore);
+                                //スコア更新
+                                saveScoreList.Add(score);
+
+                                index++;
+                                scoreStr = scoreStr.Substring(length + 1);
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            isThrowException = true;
+                        }
+
+                        //例外が投げられたら
+                        if (isThrowException == true)
+                        {
+                            await message.Channel.SendMessageAsync(
+                                "うーん...うまくスコアを読み取れなかったから、正しくスコアを参加者分入力してほしいな。\n" +
+                                "例:「IIH save 1 2 3 4」"
+                                );
+                        }
+                        //入力されたスコア数が参加人数より少なかった時
+                        else if (saveScoreList.Count < numParticipant)
+                        {
+                            await message.Channel.SendMessageAsync("スコアの数が参加者より少ないみたい...\nもう一度入力して欲しいな。");
+                        }
+                        //入力されたスコア数が参加人数より多かった時
+                        else if (saveScoreList.Count > numParticipant)
+                        {
+                            await message.Channel.SendMessageAsync("スコアの数が参加者より多いみたい...\nもう一度入力して欲しいな。");
+                        }
+                        else
+                        {
+                            //問題なければスコア登録
+                            for (int i = 0; i < saveScoreList.Count; i++)
+                            {
+                                ippatsuIkuseiHai.scoreList[i] += saveScoreList[i];
+                            }
+
+                            string output = ippatsuIkuseiHai.raceCount + "回戦目のスコアを登録したよ！\n";
+                            ippatsuIkuseiHai.raceCount++;
+
+                            //ランダム出力
+                            Random rand = new Random();
+                            int num = rand.Next(3);
+
+                            if (num == 0)
+                            {
+                                output += "みんな～！頑張ってね～～！！";
+                            }
+                            else if (num == 1)
+                            {
+                                output += "誰が優勝するのかな～、ファル子、ワクワクしてきちゃった！";
+                            }
+                            else if (num == 2)
+                            {
+                                output += "みんな、諦めないで頑張ろう～～！！";
+                            }
+
+                            await message.Channel.SendMessageAsync(output);
+                        }
+                    }
+                    else if (message.Content.Contains("trophy"))
                     {
                         string output = "---サークル内一発育成杯 トロフィー一覧---\n";
 
+                        output += "第零回\tエルコンドルパサー\tマイル\t椎名\n";
                         output += "第一回\tマヤノトップガン(花嫁)\t中距離\tりゅう\n";
                         output += "第二回\tウオッカ\tマイル\tコーシー\n";
                         output += "第三回\tメジロマックイーン\t長距離\tりゅう\n";
+                        output += "第四回\tハルウララ\tダート\tりゅう\n";
+                        output += "第五回\tキングヘイロー\t短距離\tクマ\n";
+                        output += "第六回\tスペシャルウィーク(水着)\t中距離\tクマ\n";
+                        output += "第七回\t無料単発で出たキャラ\tマイル\t椎名(マチカネフクキタル)\n";
 
                         await message.Channel.SendMessageAsync(output);
                     }
-                    else if (message.Content.Contains("ルール"))
+                    else if (message.Content.Contains("rule"))
                     {
                         await message.Channel.SendMessageAsync("一発育成杯のルールはこの投稿を見てね～☆");
                         await message.Channel.SendMessageAsync("https://discord.com/channels/842810363304869909/950089196176019486/950090352101060708");
@@ -1104,7 +1382,7 @@ namespace SmartFalcon
             }
             else if (num == 82)
             {
-                return "駿川たずな";
+                return "駿川たづな";
             }
             else if (num == 83)
             {
@@ -1189,6 +1467,14 @@ namespace SmartFalcon
             {
                 return "追込";
             }
+        }
+
+        private void ResetIppatsuIkuseiHai()
+        {
+            ippatsuIkuseiHai.nameList.Clear();
+            ippatsuIkuseiHai.scoreList.Clear();
+            ippatsuIkuseiHai.raceCount = 1;
+            ippatsuIkuseiHai.isStart = false;
         }
     }
 }
