@@ -562,6 +562,7 @@ namespace SmartFalcon
                     if (message.Content.Contains("start"))
                     {
                         bool isThrowException = false;
+                        bool isAddSameName = false;
 
                         string output = "一発育成杯を始めるよ～！\n参加者:";
 
@@ -581,30 +582,37 @@ namespace SmartFalcon
                         //IIH start 名前1 名前2 名前3...という形式
                         try
                         {
-                            string nameStr = message.Content.Substring(message.Content.IndexOf("start") + 6);
+                            string strInput = message.Content.Substring(message.Content.IndexOf("start") + 6);
 
-                            while (nameStr.Length != 0)
+                            while (strInput.Length != 0)
                             {
                                 string name = "";
 
-                                    int length = nameStr.IndexOf(" ");
+                                int length = strInput.IndexOf(" ");
 
-                                    //最後の名前
-                                    if (length == -1)
-                                    {
-                                        name = nameStr;
-                                        length = 0;
-                                    }
-                                    else
-                                    {
-                                        name = nameStr.Substring(0, length);
-                                    }
+                                //最後の名前
+                                if (length == -1)
+                                {
+                                    name = strInput;
+                                    length = 0;
+                                }
+                                else
+                                {
+                                    name = strInput.Substring(0, length);
+                                }
 
-                                    //名前と初期スコアを追加
-                                    ippatsuIkuseiHai.nameList.Add(name);
-                                    ippatsuIkuseiHai.scoreList.Add(0);
+                                //同じ名前が追加されてないかチェック
+                                if (ippatsuIkuseiHai.nameList.Contains(name) == true)
+                                {
+                                    isAddSameName = true;
+                                    break;
+                                }
 
-                                    nameStr = nameStr.Substring(length + 1);
+                                //名前と初期スコアを追加
+                                ippatsuIkuseiHai.nameList.Add(name);
+                                ippatsuIkuseiHai.scoreList.Add(0);
+
+                                strInput = strInput.Substring(length + 1);
                             }
                         }
                         catch (Exception e)
@@ -612,8 +620,14 @@ namespace SmartFalcon
                             isThrowException = true;
                         }
 
+                        //同名の参加者が追加されたとき
+                        if (isAddSameName == true)
+                        {
+                            await message.Channel.SendMessageAsync("参加者の名前は他と被らないように設定してほしいな...！");
+                            ResetIppatsuIkuseiHai();
+                        }
                         //参加者は...誰一人...来ませんでした...の時と例外が投げられたときの処理
-                        if (ippatsuIkuseiHai.nameList.Count == 0 || isThrowException == true)
+                        else if (ippatsuIkuseiHai.nameList.Count == 0 || isThrowException == true)
                         {
                             await message.Channel.SendMessageAsync(
                                 "うーん...参加者をうまく読み取れなかったから、参加者名を正しく入力して欲しいな。\n" +
@@ -712,43 +726,63 @@ namespace SmartFalcon
                     }
                     else if (message.Content.Contains("save"))
                     {
-                        //インデックス
-                        int index = 0;
-                        //登録するスコアリスト
-                        List<int> saveScoreList = new List<int>();
-                        //例外処理が投げられたか
-                        bool isThrowException = false;
                         //参加者数
                         int numParticipant = ippatsuIkuseiHai.nameList.Count;
+                        //登録するスコアリスト
+                        List<int> saveScoreList = new List<int>();
+                        //参加者数だけ要素追加
+                        for (int i = 0; i < numParticipant; i++) { saveScoreList.Add(0); }
+                        //例外処理が投げられたか
+                        bool isThrowException = false;
+                        //名前が登録されていないものだったとき
+                        bool notFoundName = false;
+                        //同じ名前が2度追加されたとき
+                        bool isAddSameName = false;
+                        //得点
+                        int score = numParticipant;
 
                         //処理に使用する文字列
                         try
                         {
-                            string scoreStr = message.Content.Substring(message.Content.IndexOf("save") + 5);
+                            string strInput = message.Content.Substring(message.Content.IndexOf("save") + 5);
 
-                            while (scoreStr.Length != 0)
+                            while (strInput.Length != 0)
                             {
-                                string strScore = "";
+                                string name = "";
 
-                                int length = scoreStr.IndexOf(" ");
+                                int length = strInput.IndexOf(" ");
 
                                 //最後の名前
                                 if (length == -1)
                                 {
-                                    strScore = scoreStr;
+                                    name = strInput;
                                     length = 0;
                                 }
                                 else
                                 {
-                                    strScore = scoreStr.Substring(0, length);
+                                    name = strInput.Substring(0, length);
                                 }
 
-                                int score = numParticipant + 1 - int.Parse(strScore);
-                                //スコア更新
-                                saveScoreList.Add(score);
+                                //名前からインデックス取得
+                                int index = ippatsuIkuseiHai.nameList.IndexOf(name);
 
-                                index++;
-                                scoreStr = scoreStr.Substring(length + 1);
+                                //登録されていない名前であったら
+                                if (index == -1)
+                                {
+                                    notFoundName = true;
+                                    break;
+                                }
+                                //同じ名前が2度登録されたら
+                                else if (saveScoreList[index] != 0)
+                                {
+                                    isAddSameName = true;
+                                    break;
+                                }
+
+                                saveScoreList[index] = score;
+
+                                score--;
+                                strInput = strInput.Substring(length + 1);
                             }
                         }
                         catch (Exception e)
@@ -760,9 +794,17 @@ namespace SmartFalcon
                         if (isThrowException == true)
                         {
                             await message.Channel.SendMessageAsync(
-                                "うーん...うまくスコアを読み取れなかったから、正しくスコアを参加者分入力してほしいな。\n" +
-                                "例:「IIH save 1 2 3 4」"
+                                "うーん...うまくスコアを読み取れなかったから、1位から順に正しくスコアを入力してほしいな。\n" +
+                                "例:「IIH save 名前1 名前2 名前3」"
                                 );
+                        }
+                        else if (notFoundName == true)
+                        {
+                            await message.Channel.SendMessageAsync("登録されていない名前が入力されたみたい！もう一度正しく入力してほしいな...！");
+                        }
+                        else if (isAddSameName == true)
+                        {
+                            await message.Channel.SendMessageAsync("同じ名前が複数登録されているみたい！もう一度正しく入力してほしいな...！");
                         }
                         //入力されたスコア数が参加人数より少なかった時
                         else if (saveScoreList.Count < numParticipant)
