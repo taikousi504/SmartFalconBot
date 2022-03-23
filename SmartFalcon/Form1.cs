@@ -90,7 +90,7 @@ namespace SmartFalcon
             _client.Ready += onReady;
             _client.JoinedGuild += JoinedGuild;
             _client.MessageReceived += onMessage;
-            _client.UserVoiceStateUpdated += UserVoiceStateUpdated;
+            //_client.UserVoiceStateUpdated += UserVoiceStateUpdated;
 
             //ログイン
             Login();
@@ -131,6 +131,7 @@ namespace SmartFalcon
             token = sr.ReadLine();
 
             sr.Close();
+            sr.Dispose();
         }
 
         private async void Login()
@@ -323,6 +324,92 @@ namespace SmartFalcon
                         }
                     }
                 }
+                //else if (message.Content.Contains("占って"))
+                //{
+                //    //20220101のようなシード値
+                //    int seedDay = DateTime.Today.Year * 10000 + DateTime.Today.Month * 1000 + DateTime.Today.Day;
+                //    //メッセージの送り主によって決まる値
+                //    int seedID = (int)message.Author.Id % 9999;
+                //    //2つを足した値をシード値にする
+                //    int seed = seedDay + seedID;
+
+                //    //シード値から乱数生成 (日替わりで違う結果になる)
+                //    Random rand = new Random(seed);
+                //    int num = rand.Next(0, 100);
+
+                //    //送る文章
+                //    string send = authorName + "の今日の運勢は...";
+
+                //    //大大吉 (5/100)
+                //    if (num < 5)
+                //    {
+                //        send += "**大大吉**！！！\nすご～～い！おめでとう！！今日はとってもいいことがあるかも！！";
+                //    }
+                //    //大吉 (15/100)
+                //    else if (num < 20)
+                //    {
+                //        send += "**大吉**！\nやった～！今日の運勢はバッチリ！";
+                //    }
+                //    //中吉 (20/100)
+                //    else if (num < 40)
+                //    {
+                //        send += "**中吉**！\n今日も元気にがんばろう～！";
+                //    }
+                //    //吉 (25/100)
+                //    else if (num < 65)
+                //    {
+                //        send += "**吉**！\n今日も無事に一日を過ごせますように！";
+                //    }
+                //    //小吉 (20/100)
+                //    else if (num < 85)
+                //    {
+                //        send += "**小吉**！\n小さな幸せ、あるかも？";
+                //    }
+                //    //凶 (10 /100)
+                //    else if (num < 95)
+                //    {
+                //        send += "**凶**...\nお、落ち込まないで！いいことあるよ...！きっと！";
+                //    }
+                //    //大凶 (4 /100)
+                //    else if (num < 98)
+                //    {
+                //        send += "**大凶**......\n今日は身の周りに注意かも...";
+                //    }
+                //    //超大吉 (1/100)
+                //    else if (num < 99)
+                //    {
+                //        send += "**超大吉**！？！？\nえ～～～っ！！なにこれ！！すごすぎるよ～～！！！\n今日ガシャを引いたらもしかしちゃうかも！？！？";
+                //    }
+                //    //死 (1/100)
+                //    else if (num < 100)
+                //    {
+                //        send += "**......**\nちょ、ちょっとファル子の口からは言えないかなあ......あはははは...\n今日はおうちから出ないほうがいいかもね...？";
+                //    }
+
+                //    //ラッキーキャラ
+                //    num = rand.Next(0, 88);
+
+                //    send += "\n\nラッキーキャラ：" + GetRndUmaName(num);
+
+                //    //ラッキー適正
+                //    //バ場
+                //    num = rand.Next(0, 5);
+
+                //    send += "\nラッキー適正：" + GetRndFieldName(num);
+
+                //    //距離
+                //    num = rand.Next(0, 4);
+
+                //    send += " " + GetRndDistanceName(num, GetRndFieldName(num));
+
+                //    //脚質
+                //    num = rand.Next(0, 4);
+
+                //    send += " " + GetRndLegName(num);
+
+                //    //送信
+                //    await message.Channel.SendMessageAsync(send);
+                //}
                 else if (message.Content.Contains("占って"))
                 {
                     //20220101のようなシード値
@@ -337,77 +424,98 @@ namespace SmartFalcon
                     int num = rand.Next(0, 100);
 
                     //送る文章
-                    string send = authorName + "の今日の運勢は...";
+                    string fortune = "",
+                             comment = "",
+                             chara = "",
+                             field = "",
+                             distance = "",
+                             leg = "";
 
                     //大大吉 (5/100)
                     if (num < 5)
                     {
-                        send += "**大大吉**！！！\nすご～～い！おめでとう！！今日はとってもいいことがあるかも！！";
+                        fortune = "大大吉";
+                        comment = "すご～～い！おめでとう！！\n今日はとってもいいことがあるかも！！";
                     }
                     //大吉 (15/100)
                     else if (num < 20)
                     {
-                        send += "**大吉**！\nやった～！今日の運勢はバッチリ！";
+                        fortune = "大吉";
+                        comment = "やった～！今日の運勢はバッチリ！";
                     }
                     //中吉 (20/100)
                     else if (num < 40)
                     {
-                        send += "**中吉**！\n今日も元気にがんばろう～！";
+                        fortune = "中吉";
+                        comment = "今日も元気にがんばろう～！";
                     }
                     //吉 (25/100)
                     else if (num < 65)
                     {
-                        send += "**吉**！\n今日も無事に一日を過ごせますように！";
+                        fortune = "吉";
+                        comment = "今日も無事に一日を過ごせますように！";
                     }
                     //小吉 (20/100)
                     else if (num < 85)
                     {
-                        send += "**小吉**！\n小さな幸せ、あるかも？";
+                        fortune = "小吉";
+                        comment = "小さな幸せ、あるかも？";
                     }
                     //凶 (10 /100)
                     else if (num < 95)
                     {
-                        send += "**凶**...\nお、落ち込まないで！いいことあるよ...！きっと！";
+                        fortune = "凶";
+                        comment = "お、落ち込まないで！いいことあるよ...！きっと！";
                     }
                     //大凶 (4 /100)
                     else if (num < 98)
                     {
-                        send += "**大凶**......\n今日は身の周りに注意かも...";
+                        fortune = "大凶";
+                        comment = "今日は身の周りに注意かも...";
                     }
                     //超大吉 (1/100)
                     else if (num < 99)
                     {
-                        send += "**超大吉**！？！？\nえ～～～っ！！なにこれ！！すごすぎるよ～～！！！\n今日ガシャを引いたらもしかしちゃうかも！？！？";
+                        fortune = "超大吉";
+                        comment = "え～～～っ！！なにこれ！！すごすぎるよ～～！！！\n今日ガシャを引いたらもしかしちゃうかも！？！？";
                     }
                     //死 (1/100)
                     else if (num < 100)
                     {
-                        send += "**......**\nちょ、ちょっとファル子の口からは言えないかなあ......あはははは...\n今日はおうちから出ないほうがいいかもね...？";
+                        fortune = "極凶";
+                        comment = "あ、あはははは...\n今日はおうちから出ないほうがいいかもね...？";
                     }
 
                     //ラッキーキャラ
                     num = rand.Next(0, 88);
 
-                    send += "\n\nラッキーキャラ：" + GetRndUmaName(num);
+                    chara = GetRndUmaName(num);
 
                     //ラッキー適正
                     //バ場
                     num = rand.Next(0, 5);
 
-                    send += "\nラッキー適正：" + GetRndFieldName(num);
+                    field = GetRndFieldName(num);
 
                     //距離
                     num = rand.Next(0, 4);
 
-                    send += " " + GetRndDistanceName(num, GetRndFieldName(num));
+                    distance = GetRndDistanceName(num, GetRndFieldName(num));
 
                     //脚質
                     num = rand.Next(0, 4);
 
-                    send += " " + GetRndLegName(num);
+                    leg = GetRndLegName(num);
+
+                    //画像生成
+                    string path = "E:/Koushi/Discord_Bot/TestBot/SmartFalcon/tmp.png";
+                    CreateFortuneImg(authorName, fortune, comment, chara, field, distance, leg, path);
 
                     //送信
-                    await message.Channel.SendMessageAsync(send);
+                    await message.Channel.SendFileAsync(path);
+
+                    //削除
+                    File.Delete(path);
                 }
                 else if (message.Content.Contains("慰めて"))
                 {
@@ -594,7 +702,6 @@ namespace SmartFalcon
                                 if (length == -1)
                                 {
                                     name = strInput;
-                                    length = 0;
                                 }
                                 else
                                 {
@@ -611,6 +718,11 @@ namespace SmartFalcon
                                 //名前と初期スコアを追加
                                 ippatsuIkuseiHai.nameList.Add(name);
                                 ippatsuIkuseiHai.scoreList.Add(0);
+
+                                if (length == -1)
+                                {
+                                    break;
+                                }
 
                                 strInput = strInput.Substring(length + 1);
                             }
@@ -756,7 +868,6 @@ namespace SmartFalcon
                                 if (length == -1)
                                 {
                                     name = strInput;
-                                    length = 0;
                                 }
                                 else
                                 {
@@ -782,7 +893,13 @@ namespace SmartFalcon
                                 saveScoreList[index] = score;
 
                                 score--;
+
                                 strInput = strInput.Substring(length + 1);
+
+                                if (length == -1)
+                                {
+                                    break;
+                                }
                             }
                         }
                         catch (Exception e)
@@ -859,6 +976,7 @@ namespace SmartFalcon
                         output += "第五回\tキングヘイロー\t短距離\tクマ\n";
                         output += "第六回\tスペシャルウィーク(水着)\t中距離\tクマ\n";
                         output += "第七回\t無料単発で出たキャラ\tマイル\t椎名(マチカネフクキタル)\n";
+                        output += "第八回\tゴールドシップ\t長距離\tクマ\n";
 
                         await message.Channel.SendMessageAsync(output);
                     }
@@ -975,6 +1093,7 @@ namespace SmartFalcon
             }
 
             sr.Close();
+            sr.Dispose();
         }
 
         //呼び名セーブ
@@ -986,6 +1105,7 @@ namespace SmartFalcon
                 sr.WriteLine(v.Key + "," + v.Value);
             }
             sr.Close();
+            sr.Dispose();
         }
 
         //じゃんけんランキングロード
@@ -1033,6 +1153,7 @@ namespace SmartFalcon
             }
 
             sr.Close();
+            sr.Dispose();
         }
 
         //じゃんけんランキングセーブ
@@ -1044,6 +1165,7 @@ namespace SmartFalcon
                 sr.WriteLine(v.Key + "," + v.Value.name + "," + v.Value.point);
             }
             sr.Close();
+            sr.Dispose();
         }
 
         //現在の順位取得
@@ -1517,6 +1639,140 @@ namespace SmartFalcon
             ippatsuIkuseiHai.scoreList.Clear();
             ippatsuIkuseiHai.raceCount = 1;
             ippatsuIkuseiHai.isStart = false;
+        }
+        private void CreateFortuneImg(string authorName, string fortune, string comment, string chara, string field, string distance, string leg, string dstPath)
+        {
+            float basePosX = 510,
+                basePosY = 100;
+
+            //ベースとなる画像読み込み
+            Random rand = new Random(DateTime.Now.Second);
+            string name = "0" + rand.Next(1, 4);
+            System.Drawing.Image img = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_base_" + name + ".png");
+
+            //imageからグラフィック読み込み
+            Graphics graphics = Graphics.FromImage(img);
+
+            //フォント読み込み
+            Font fntSmall = new Font("わんぱくルイカ-０７", 30);
+            Font fntNormal = new Font("わんぱくルイカ-０７", 50);
+            Font fntBig = new Font("わんぱくルイカ-０７", 70);
+
+            #region 運勢
+            //位置計測
+            SizeF strSize = graphics.MeasureString(authorName + "の今日の運勢...", fntNormal);
+
+            //名前のサイズに合わせて拡縮
+            float sx = strSize.Width > 600 ? 600.0f / strSize.Width : 1;
+            graphics.TranslateTransform(basePosX, 0);
+            graphics.ScaleTransform(sx, 1);
+            //テキスト描画
+            graphics.DrawString(authorName + "の今日の運勢...", fntNormal, Brushes.SaddleBrown, 0, basePosY);
+            //拡縮を戻す
+            graphics.ResetTransform();
+
+            //色を変えて運勢描画
+            Brush brush = Brushes.SaddleBrown;
+            if (fortune == "超大吉")
+            {
+                brush = Brushes.Gold;
+            }
+            else if (fortune == "大大吉")
+            {
+                brush = Brushes.Orange;
+            }
+            else if (fortune == "大吉")
+            {
+                brush = Brushes.Red;
+            }
+            else if (fortune == "凶")
+            {
+                brush = Brushes.Blue;
+            }
+            else if (fortune == "大凶")
+            {
+                brush = Brushes.Navy;
+            }
+            else if (fortune == "極凶")
+            {
+                brush = Brushes.DarkRed;
+            }
+
+            graphics.DrawString(fortune, fntBig, brush, basePosX + strSize.Width * sx, basePosY - 10);
+            #endregion
+
+            #region 一言コメント
+
+            graphics.DrawString(comment, fntSmall, Brushes.SaddleBrown, basePosX + 40, basePosY + 125);
+
+            #endregion
+
+            #region キャラ
+
+            graphics.DrawString("ラッキーキャラ..." + chara, fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 275);
+
+            #endregion
+
+            #region 適性
+            graphics.DrawString("ラッキー適性", fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 400);
+
+            //バ場適性
+            if (field == "芝")
+            {
+                graphics.FillEllipse(Brushes.Red, 774, 557, 21, 21);
+            }
+            else if (field == "ダート")
+            {
+                graphics.FillEllipse(Brushes.Red, 912, 557, 21, 21);
+            }
+
+            //距離適性
+            if (distance == "短距離")
+            {
+                graphics.FillEllipse(Brushes.Red, 774, 599, 21, 21);
+            }
+            else if (distance == "マイル")
+            {
+                graphics.FillEllipse(Brushes.Red, 912, 599, 21, 21);
+            }
+            else if (distance == "中距離")
+            {
+                graphics.FillEllipse(Brushes.Red, 1051, 599, 21, 21);
+            }
+            else if (distance == "長距離")
+            {
+                graphics.FillEllipse(Brushes.Red, 1189, 599, 21, 21);
+            }
+
+            //脚質適性
+            if (leg == "逃げ")
+            {
+                graphics.FillEllipse(Brushes.Red, 774, 641, 21, 21);
+            }
+            else if (leg == "先行")
+            {
+                graphics.FillEllipse(Brushes.Red, 912, 641, 21, 21);
+            }
+            else if (leg == "差し")
+            {
+                graphics.FillEllipse(Brushes.Red, 1051, 641, 21, 21);
+            }
+            else if (leg == "追込")
+            {
+                graphics.FillEllipse(Brushes.Red, 1189, 641, 21, 21);
+            }
+
+            #endregion
+
+            //保存
+            img.Save(dstPath);
+
+            //各種解放
+            fntSmall.Dispose();
+            fntNormal.Dispose();
+            fntBig.Dispose();
+            graphics.Dispose();
+            img.Dispose();
         }
     }
 }
