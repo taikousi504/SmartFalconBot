@@ -421,7 +421,7 @@ namespace SmartFalcon
 
 
                     //画像生成
-                    string path = "E:/Koushi/Discord_Bot/TestBot/SmartFalcon/tmp.png";
+                    string path = "E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/tmp.png";
                     CreateFortuneImg(authorName, seed, path);
 
                     //送信
@@ -1657,9 +1657,18 @@ namespace SmartFalcon
             }
 
             //ラッキーキャラ
-            num = rand.Next(0, 88);
+            int charaCount = Directory.GetFiles("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Chara", "*").Length;
+            int participantsCount = Directory.GetFiles("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Participants", "*").Length;
+            num = rand.Next(charaCount + participantsCount);
 
-            chara = GetRndUmaName(num);
+            if (num < charaCount)
+            {
+                chara = "Chara/" + num;
+            }
+            else
+            {
+                chara = "Participants/" + (num - charaCount);
+            }
 
             //ラッキー適正
             //バ場
@@ -1686,8 +1695,11 @@ namespace SmartFalcon
 
             //ベースとなる画像読み込み
             Random rand2 = new Random(DateTime.Now.Second);
-            string name = "0" + rand2.Next(1, 4);
-            System.Drawing.Image img = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_base_" + name + ".png");
+            System.Drawing.Image img = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Base_" + rand2.Next(3) + ".png");
+            System.Drawing.Image imgInshiBase = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Inshi_Base_4.png");
+            System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Inshi_Star.png");
+            System.Drawing.Image imgTekisei = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Tekisei.png");
+            System.Drawing.Image imgChara = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/" + chara + ".png");
 
             //imageからグラフィック読み込み
             Graphics graphics = Graphics.FromImage(img);
@@ -1748,8 +1760,6 @@ namespace SmartFalcon
 
             #region 因子
             //画像データ
-            System.Drawing.Image imgInshiBase = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_inshi_base4.png");
-            System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_inshi_star.png");
 
             //定数
             const float STAR_LEFT_UP_POS_X = 697;
@@ -1778,57 +1788,63 @@ namespace SmartFalcon
 
             #region キャラ
 
-            graphics.DrawString("ラッキーキャラ..." + chara, fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 350);
+            graphics.DrawString("ラッキーキャラ...", fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 370);
+
+            //画像貼り付け
+            graphics.DrawImage(imgChara, 751, 443, 96, 96);
 
             #endregion
 
             #region 適性
-            graphics.DrawString("ラッキー適性", fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 400);
+            graphics.DrawString("ラッキー適性", fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 430);
+
+            //適性ベース画像貼り付け
+            graphics.DrawImage(imgTekisei, 0, 0);
 
             //バ場適性
             if (field == "芝")
             {
-                graphics.FillEllipse(Brushes.Red, 774, 557, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 774, 587, 21, 21);
             }
             else if (field == "ダート")
             {
-                graphics.FillEllipse(Brushes.Red, 912, 557, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 912, 587, 21, 21);
             }
 
             //距離適性
             if (distance == "短距離")
             {
-                graphics.FillEllipse(Brushes.Red, 774, 599, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 774, 629, 21, 21);
             }
             else if (distance == "マイル")
             {
-                graphics.FillEllipse(Brushes.Red, 912, 599, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 912, 629, 21, 21);
             }
             else if (distance == "中距離")
             {
-                graphics.FillEllipse(Brushes.Red, 1051, 599, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 1051, 629, 21, 21);
             }
             else if (distance == "長距離")
             {
-                graphics.FillEllipse(Brushes.Red, 1189, 599, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 1189, 629, 21, 21);
             }
 
             //脚質適性
             if (leg == "逃げ")
             {
-                graphics.FillEllipse(Brushes.Red, 774, 641, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 774, 671, 21, 21);
             }
             else if (leg == "先行")
             {
-                graphics.FillEllipse(Brushes.Red, 912, 641, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 912, 671, 21, 21);
             }
             else if (leg == "差し")
             {
-                graphics.FillEllipse(Brushes.Red, 1051, 641, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 1051, 671, 21, 21);
             }
             else if (leg == "追込")
             {
-                graphics.FillEllipse(Brushes.Red, 1189, 641, 21, 21);
+                graphics.FillEllipse(Brushes.Red, 1189, 671, 21, 21);
             }
 
             #endregion
