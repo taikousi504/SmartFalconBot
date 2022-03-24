@@ -419,97 +419,10 @@ namespace SmartFalcon
                     //2つを足した値をシード値にする
                     int seed = seedDay + seedID;
 
-                    //シード値から乱数生成 (日替わりで違う結果になる)
-                    Random rand = new Random(seed);
-                    int num = rand.Next(0, 100);
-
-                    //送る文章
-                    string fortune = "",
-                             comment = "",
-                             chara = "",
-                             field = "",
-                             distance = "",
-                             leg = "";
-
-                    //大大吉 (5/100)
-                    if (num < 5)
-                    {
-                        fortune = "大大吉";
-                        comment = "すご～～い！おめでとう！！\n今日はとってもいいことがあるかも！！";
-                    }
-                    //大吉 (15/100)
-                    else if (num < 20)
-                    {
-                        fortune = "大吉";
-                        comment = "やった～！今日の運勢はバッチリ！";
-                    }
-                    //中吉 (20/100)
-                    else if (num < 40)
-                    {
-                        fortune = "中吉";
-                        comment = "今日も元気にがんばろう～！";
-                    }
-                    //吉 (25/100)
-                    else if (num < 65)
-                    {
-                        fortune = "吉";
-                        comment = "今日も無事に一日を過ごせますように！";
-                    }
-                    //小吉 (20/100)
-                    else if (num < 85)
-                    {
-                        fortune = "小吉";
-                        comment = "小さな幸せ、あるかも？";
-                    }
-                    //凶 (10 /100)
-                    else if (num < 95)
-                    {
-                        fortune = "凶";
-                        comment = "お、落ち込まないで！いいことあるよ...！きっと！";
-                    }
-                    //大凶 (4 /100)
-                    else if (num < 98)
-                    {
-                        fortune = "大凶";
-                        comment = "今日は身の周りに注意かも...";
-                    }
-                    //超大吉 (1/100)
-                    else if (num < 99)
-                    {
-                        fortune = "超大吉";
-                        comment = "え～～～っ！！なにこれ！！すごすぎるよ～～！！！\n今日ガシャを引いたらもしかしちゃうかも！？！？";
-                    }
-                    //死 (1/100)
-                    else if (num < 100)
-                    {
-                        fortune = "極凶";
-                        comment = "あ、あはははは...\n今日はおうちから出ないほうがいいかもね...？";
-                    }
-
-                    //ラッキーキャラ
-                    num = rand.Next(0, 88);
-
-                    chara = GetRndUmaName(num);
-
-                    //ラッキー適正
-                    //バ場
-                    num = rand.Next(0, 5);
-
-                    field = GetRndFieldName(num);
-
-                    //距離
-                    num = rand.Next(0, 4);
-
-                    distance = GetRndDistanceName(num, GetRndFieldName(num));
-
-                    //脚質
-                    num = rand.Next(0, 4);
-
-                    leg = GetRndLegName(num);
 
                     //画像生成
                     string path = "E:/Koushi/Discord_Bot/TestBot/SmartFalcon/tmp.png";
-                    CreateFortuneImg(authorName, fortune, comment, chara, field, distance, leg, path);
+                    CreateFortuneImg(authorName, seed, path);
 
                     //送信
                     await message.Channel.SendFileAsync(path);
@@ -1640,14 +1553,140 @@ namespace SmartFalcon
             ippatsuIkuseiHai.raceCount = 1;
             ippatsuIkuseiHai.isStart = false;
         }
-        private void CreateFortuneImg(string authorName, string fortune, string comment, string chara, string field, string distance, string leg, string dstPath)
+        private void CreateFortuneImg(string authorName, int seed, string dstPath)
         {
-            float basePosX = 510,
+            #region 占い結果生成
+            //シード値から乱数生成 (日替わりで違う結果になる)
+            Random rand = new Random(seed);
+            int num = rand.Next(0, 100);
+
+            //送る文章
+            string fortune,
+                     comment,
+                     chara,
+                     field,
+                     distance,
+                     leg;
+
+            //因子運
+            int[] starCount = new int[6];
+            int allStarCount = 0;
+            for (int i = 0; i < starCount.Length; i++)
+            {
+                //確率で0個～3個に分類
+                starCount[i] = rand.Next(0, 100);
+
+                //0個 (15%)
+                if (starCount[i] < 15)
+                {
+                    starCount[i] = 0;
+                }
+                //1個 (40%)
+                else if (starCount[i] < 55)
+                {
+                    starCount[i] = 1;
+                }
+                //2個 (30%)
+                else if (starCount[i] < 85)
+                {
+                    starCount[i] = 2;
+                }
+                //3個 (15%)
+                else
+                {
+                    starCount[i] = 3;
+                }
+
+                allStarCount += starCount[i];
+            }
+
+
+            //超大吉 (1/100)
+            if (allStarCount >= 16)
+            {
+                fortune = "超大吉";
+                comment = "今日ガシャを引いたらもしかしちゃうかも！？！？";
+            }
+            //大大吉 (5/100)
+            else if (allStarCount >= 14)
+            {
+                fortune = "大大吉";
+                comment = "すご～～い！おめでとう！！\n今日はとってもいいことがあるかも！！";
+            }
+            //大吉 (15/100)
+            else if (allStarCount >= 12)
+            {
+                fortune = "大吉";
+                comment = "やった～！今日の運勢はバッチリ！";
+            }
+            //中吉 (20/100)
+            else if (allStarCount >= 10)
+            {
+                fortune = "中吉";
+                comment = "今日も元気にがんばろう～！";
+            }
+            //吉 (25/100)
+            else if (allStarCount >= 8)
+            {
+                fortune = "吉";
+                comment = "今日も無事に一日を過ごせますように！";
+            }
+            //小吉 (20/100)
+            else if (allStarCount >= 6)
+            {
+                fortune = "小吉";
+                comment = "小さな幸せ、あるかも？";
+            }
+            //凶 (10 /100)
+            else if (allStarCount >= 4)
+            {
+                fortune = "凶";
+                comment = "お、落ち込まないで！いいことあるよ...！きっと！";
+            }
+            //大凶 (4 /100)
+            else if (allStarCount >= 2)
+            {
+                fortune = "大凶";
+                comment = "今日は身の周りに注意かも...";
+            }
+            //死 (1/100)
+            else
+            {
+                fortune = "極凶";
+                comment = "今日はおうちから出ないほうがいいかもね...？";
+            }
+
+            //ラッキーキャラ
+            num = rand.Next(0, 88);
+
+            chara = GetRndUmaName(num);
+
+            //ラッキー適正
+            //バ場
+            num = rand.Next(0, 5);
+
+            field = GetRndFieldName(num);
+
+            //距離
+            num = rand.Next(0, 4);
+
+            distance = GetRndDistanceName(num, GetRndFieldName(num));
+
+            //脚質
+            num = rand.Next(0, 4);
+
+            leg = GetRndLegName(num);
+
+            #endregion
+
+            #region 出力
+
+            float basePosX = 490,
                 basePosY = 100;
 
             //ベースとなる画像読み込み
-            Random rand = new Random(DateTime.Now.Second);
-            string name = "0" + rand.Next(1, 4);
+            Random rand2 = new Random(DateTime.Now.Second);
+            string name = "0" + rand2.Next(1, 4);
             System.Drawing.Image img = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_base_" + name + ".png");
 
             //imageからグラフィック読み込み
@@ -1703,13 +1742,43 @@ namespace SmartFalcon
 
             #region 一言コメント
 
-            graphics.DrawString(comment, fntSmall, Brushes.SaddleBrown, basePosX + 40, basePosY + 125);
+            graphics.DrawString(comment, fntSmall, Brushes.SaddleBrown, basePosX + 40, basePosY + 80);
+
+            #endregion
+
+            #region 因子
+            //画像データ
+            System.Drawing.Image imgInshiBase = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_inshi_base4.png");
+            System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/uranai_inshi_star.png");
+
+            //定数
+            const float STAR_LEFT_UP_POS_X = 697;
+            const float STAR_LEFT_UP_POS_Y = 251;
+            const float ADD_X = 32;
+            const float ADD_Y = 70;
+
+            //テクスチャに因子のベース画像を貼る
+            graphics.DrawImage(imgInshiBase, 0, 0);
+
+            //各運勢ごとに因子の★を貼る
+            for (int i = 0; i < starCount.Length; i++)
+            {
+                //星の数だけループ
+                for (int j = 0; j < starCount[i]; j++)
+                {
+                    //位置補正
+                    float adjX = ADD_X * j + 350 * (i / 3), adjY = ADD_Y * (i % 3);
+
+                    //★画像を貼る
+                    graphics.DrawImage(imgInshiStar, STAR_LEFT_UP_POS_X + adjX, STAR_LEFT_UP_POS_Y + adjY, 26, 26);
+                }
+            }
 
             #endregion
 
             #region キャラ
 
-            graphics.DrawString("ラッキーキャラ..." + chara, fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 275);
+            graphics.DrawString("ラッキーキャラ..." + chara, fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 350);
 
             #endregion
 
@@ -1773,6 +1842,7 @@ namespace SmartFalcon
             fntBig.Dispose();
             graphics.Dispose();
             img.Dispose();
+            #endregion
         }
     }
 }
