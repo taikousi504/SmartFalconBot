@@ -421,7 +421,7 @@ namespace SmartFalcon
 
 
                     //画像生成
-                    string path = "E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/tmp.png";
+                    string path = "Resources/tmp.png";
                     CreateFortuneImg(authorName, seed, path);
 
                     //送信
@@ -1611,7 +1611,7 @@ namespace SmartFalcon
             else if (allStarCount >= 14)
             {
                 fortune = "大大吉";
-                comment = "すご～～い！おめでとう！！\n今日はとってもいいことがあるかも！！";
+                comment = "今日はとってもいいことがあるかも！！";
             }
             //大吉 (15/100)
             else if (allStarCount >= 12)
@@ -1657,8 +1657,8 @@ namespace SmartFalcon
             }
 
             //ラッキーキャラ
-            int charaCount = Directory.GetFiles("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Chara", "*").Length;
-            int participantsCount = Directory.GetFiles("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Participants", "*").Length;
+            int charaCount = Directory.GetFiles("Resources/Chara", "*").Length;
+            int participantsCount = Directory.GetFiles("Resources/Participants", "*").Length;
             num = rand.Next(charaCount + participantsCount);
 
             if (num < charaCount)
@@ -1690,16 +1690,16 @@ namespace SmartFalcon
 
             #region 出力
 
-            float basePosX = 490,
+            float basePosX = 470,
                 basePosY = 100;
 
             //ベースとなる画像読み込み
             Random rand2 = new Random(DateTime.Now.Second);
-            System.Drawing.Image img = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Base_" + rand2.Next(3) + ".png");
-            System.Drawing.Image imgInshiBase = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Inshi_Base_4.png");
-            System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Inshi_Star.png");
-            System.Drawing.Image imgTekisei = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/Fortune/Tekisei.png");
-            System.Drawing.Image imgChara = System.Drawing.Image.FromFile("E:/Koushi/Discord_Bot/TestBot/SmartFalcon/Resources/" + chara + ".png");
+            System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/Fortune/Base_" + rand2.Next(3) + ".png");
+            System.Drawing.Image imgInshiBase = System.Drawing.Image.FromFile("Resources/Fortune/Inshi_Base_4.png");
+            System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("Resources/Fortune/Inshi_Star.png");
+            System.Drawing.Image imgTekisei = System.Drawing.Image.FromFile("Resources/Fortune/Tekisei.png");
+            System.Drawing.Image imgChara = System.Drawing.Image.FromFile("Resources/" + chara + ".png");
 
             //imageからグラフィック読み込み
             Graphics graphics = Graphics.FromImage(img);
@@ -1714,7 +1714,7 @@ namespace SmartFalcon
             SizeF strSize = graphics.MeasureString(authorName + "の今日の運勢...", fntNormal);
 
             //名前のサイズに合わせて拡縮
-            float sx = strSize.Width > 600 ? 600.0f / strSize.Width : 1;
+            float sx = strSize.Width > 550 ? 550.0f / strSize.Width : 1;
             graphics.TranslateTransform(basePosX, 0);
             graphics.ScaleTransform(sx, 1);
             //テキスト描画
