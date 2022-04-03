@@ -34,11 +34,11 @@ namespace SmartFalcon
     public partial class Form1 : Form
     {
         //クライアント
-        private readonly DiscordSocketClient _client;
+        public readonly DiscordSocketClient _client;
         //ロールでのメンションに反応できるようにするため
-        private readonly ulong otherID = 944029368584388701;
+        public readonly ulong otherID = 944029368584388701;
         //サーバーID
-        private readonly ulong serverID = 842810363304869909;
+        public readonly ulong serverID = 842810363304869909;
         //トークン
         private string token = "";
         //静かにするモードか
@@ -52,6 +52,7 @@ namespace SmartFalcon
         //一発育成杯計算用
         private IppatsuIkuseiHai ippatsuIkuseiHai = new IppatsuIkuseiHai();
 
+        private bool bReady = false;
 
         public Form1()
         {
@@ -66,9 +67,14 @@ namespace SmartFalcon
 
             ContextMenuStrip menu = new ContextMenuStrip();
             ToolStripMenuItem menuItem = new ToolStripMenuItem();
-            menuItem.Text = "&終了";
-            menuItem.Click += new EventHandler(Close_Click);
+            menuItem.Text = "&手動投稿";
+            menuItem.Click += new EventHandler(ManualPost);
             menu.Items.Add(menuItem);
+
+            ToolStripMenuItem menuItem2 = new ToolStripMenuItem();
+            menuItem2.Text = "&終了";
+            menuItem2.Click += new EventHandler(Close_Click);
+            menu.Items.Add(menuItem2);
             icon.ContextMenuStrip = menu;
 
             //トークン取得
@@ -147,6 +153,23 @@ namespace SmartFalcon
             Application.Exit();
         }
 
+        async public void Interval(object sender, EventArgs e)
+        {
+            if (!bReady) { return; }
+
+
+        }
+
+        private void ManualPost(object sender, EventArgs e)
+        {
+            //ダイアログ生成
+            Form2 form2 = new Form2(this);
+
+            form2.Show();
+
+            //form2.Dispose();
+        }
+
         private Task Log(LogMessage log)
         {
             Console.WriteLine(log.ToString());
@@ -156,6 +179,7 @@ namespace SmartFalcon
         private Task onReady()
         {
             Console.WriteLine($"{_client.CurrentUser} is Running!!");
+            bReady = true;
             return Task.CompletedTask;
         }
 
@@ -185,7 +209,8 @@ namespace SmartFalcon
             }
 
             //自分へのメンションか
-            bool isMention = message.Content.Contains(_client.CurrentUser.Id.ToString()) || message.Content.Contains(otherID.ToString());
+            bool isMention = message.Content.Contains(_client.CurrentUser.Id.ToString()) || message.Content.Contains(otherID.ToString()) ||
+                message.CleanContent.Contains("@スマートファルコン");
 
             //呼び名
             string authorName = message.Author.Username + "さん";
@@ -897,6 +922,46 @@ namespace SmartFalcon
                     {
                         await message.Channel.SendMessageAsync("一発育成杯のルールはこの投稿を見てね～☆");
                         await message.Channel.SendMessageAsync("https://discord.com/channels/842810363304869909/950089196176019486/950090352101060708");
+                    }
+                }
+                else if (message.Content.Contains("因子シミュ"))
+                {
+                    int count = 1;
+                    if (message.Content.Contains("因子シミュ5連"))
+                    {
+                        count = 5;
+                    }
+
+                    try
+                    {
+                        string[] str = message.CleanContent.Split(' ');
+
+                        //画像生成
+                        string path = "Resources/tmp2.png";
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            //[0][1]はヘッダなので[2]から
+                            if (str.Length < 8)
+                            {
+                                CreateInshiImg(int.Parse(str[2]), int.Parse(str[3]), int.Parse(str[4]), int.Parse(str[5]), int.Parse(str[6]), "", path);
+                            }
+                            else
+                            {
+                                CreateInshiImg(int.Parse(str[2]), int.Parse(str[3]), int.Parse(str[4]), int.Parse(str[5]), int.Parse(str[6]), str[7], path);
+                            }
+
+                            //送信
+                            await message.Channel.SendFileAsync(path);
+
+                            //削除
+                            File.Delete(path);
+                        }
+                    }
+                    catch(Exception e)
+                    {
+                        //送信
+                        await message.Channel.SendMessageAsync("エラーが発生したみたい...\nコマンド構文におかしいところがないかチェックしてみてね！");
                     }
                 }
             }
@@ -1859,6 +1924,251 @@ namespace SmartFalcon
             graphics.Dispose();
             img.Dispose();
             #endregion
+        }
+
+        /// <summary>
+        /// 因子シミュレーション画像を作成
+        /// </summary>
+        private void CreateInshiImg(int speed, int stamina, int power, int guts, int wise, string skillName, string dstPath)
+        {
+            Random rand = new Random();
+
+            //引数の情報から因子生成
+            int nBlue = 0, nRed = 0, nGreen = 0;
+            string strBlue = "", strRed = "", strGreen = "固有";
+
+            //青
+            //まずどの因子にするか
+            int kind = rand.Next(5);
+            int num = 0;
+            //スピード
+            if (kind == 0)
+            {
+                strBlue = "スピード";
+                num = speed;
+            }
+            //スタミナ
+            else if (kind == 1)
+            {
+                strBlue = "スタミナ";
+                num = stamina;
+            }
+            //パワー
+            else if (kind == 2)
+            {
+                strBlue = "パワー";
+                num = power;
+            }
+            //根性
+            else if (kind == 3)
+            {
+                strBlue = "根性";
+                num = guts;
+            }
+            //賢さ
+            else
+            {
+                strBlue = "賢さ";
+                num = wise;
+            }
+
+            //星の数
+            int inshi = rand.Next(1000);
+            if (num < 600)
+            {
+                //☆ (90%)
+                if (inshi < 900)
+                {
+                    nBlue = 1;
+                }
+                //☆☆ (10%)
+                else
+                {
+                    nBlue = 2;
+                }
+
+            }
+            else if (num < 1100)
+            {
+                //☆ (50%)
+                if (inshi < 500)
+                {
+                    nBlue = 1;
+                }
+                //☆☆ (45%)
+                else if (inshi < 950)
+                {
+                    nBlue = 2;
+                }
+                //☆☆☆ (5%)
+                else
+                {
+                    nBlue = 3;
+                }
+            }
+            else
+            {
+                //☆ (20%)
+                if (inshi < 200)
+                {
+                    nBlue = 1;
+                }
+                //☆☆ (70%)
+                else if (inshi < 900)
+                {
+                    nBlue = 2;
+                }
+                //☆☆☆ (10%)
+                else
+                {
+                    nBlue = 3;
+                }
+            }
+
+
+            //赤
+            //まずどの因子にするか
+            kind = rand.Next(10);
+            //芝
+            if (kind == 0)
+            {
+                strRed = "芝";
+            }
+            //ダート
+            else if (kind == 1)
+            {
+                strRed = "ダート";
+            }
+            //短距離
+            else if (kind == 2)
+            {
+                strRed = "短距離";
+            }
+            //マイル
+            else if (kind == 3)
+            {
+                strRed = "マイル";
+            }
+            //中距離
+            else if (kind == 4)
+            {
+                strRed = "中距離";
+            }
+            //長距離
+            else if (kind == 5)
+            {
+                strRed = "長距離";
+            }
+            //逃げ
+            else if (kind == 6)
+            {
+                strRed = "逃げ";
+            }
+            //先行
+            else if (kind == 7)
+            {
+                strRed = "先行";
+            }
+            //差し
+            else if (kind == 6)
+            {
+                strRed = "差し";
+            }
+            //追込
+            else
+            {
+                strRed = "追込";
+            }
+
+
+            inshi = rand.Next(1000);
+            //☆ (20%)
+            if (inshi < 200)
+            {
+                nRed = 1;
+            }
+            //☆☆ (70%)
+            else if (inshi < 900)
+            {
+                nRed = 2;
+            }
+            //☆☆☆ (10%)
+            else
+            {
+                nRed = 3;
+            }
+
+            //緑
+            if (skillName != "")
+            {
+                strGreen = skillName;
+            }
+
+            inshi = rand.Next(1000);
+            //☆ (50%)
+            if (inshi < 500)
+            {
+                nGreen = 1;
+            }
+            //☆☆ (42%)
+            else if (inshi < 920)
+            {
+                nGreen = 2;
+            }
+            //☆☆☆ (8%)
+            else
+            {
+                nGreen = 3;
+            }
+
+
+            //画像読み込み
+            System.Drawing.Image imgBase = System.Drawing.Image.FromFile("Resources/Inshi/Base.png");
+            System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("Resources/Inshi/Star.png");
+
+            //フォント読み込み
+            Font font = new Font("わんぱくルイカ-０７", 18);
+
+            //imageからグラフィック読み込み
+            Graphics graphics = Graphics.FromImage(imgBase);
+
+            //文字や☆を描画
+            //文字
+            //青
+            graphics.DrawString(strBlue, font, Brushes.White, 82, 206);
+            //赤
+            graphics.DrawString(strRed, font, Brushes.White, 82, 289);
+            //緑
+            graphics.DrawString(strGreen, font, Brushes.White, 82, 372);
+
+            //☆
+            int x = 582, addX = 32;
+            //青
+            for (int i = 0; i < nBlue; i++)
+            {
+                //★画像を貼る
+                graphics.DrawImage(imgInshiStar, x + addX * i, 205, 26, 26);
+            }
+            //赤
+            for (int i = 0; i < nRed; i++)
+            {
+                //★画像を貼る
+                graphics.DrawImage(imgInshiStar, x + addX * i, 288, 26, 26);
+            }
+            //緑
+            for (int i = 0; i < nGreen; i++)
+            {
+                //★画像を貼る
+                graphics.DrawImage(imgInshiStar, x + addX * i, 371, 26, 26);
+            }
+
+            //保存
+            imgBase.Save(dstPath);
+
+            //各種解放
+            font.Dispose();
+            graphics.Dispose();
+            imgBase.Dispose();
         }
     }
 }

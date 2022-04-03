@@ -17,6 +17,12 @@ namespace SmartFalcon
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Form1 form = new Form1();
+
+            Timer timer = new Timer();
+            timer.Tick += new EventHandler(form.Interval);
+            timer.Interval = 1000;
+            timer.Enabled = true;
+
             Application.Run();
         }
     }
