@@ -716,26 +716,43 @@ namespace SmartFalcon
                         {
                             string output = "結果は......！\n";
                             List<string> winnerList = new List<string>();
+                            List<int> indices = new List<int>();
                             int maxScore = 0;
+
+                            //ポイントが高い順にソート
+                            for (int i = 0; i < ippatsuIkuseiHai.nameList.Count; i++)
+                            {
+                                indices.Add(i);
+                                for (int j = indices.Count - 1; j > 0; j--)
+                                {
+                                    //登録しようとしてるスコアが元々あったスコアより高かったら入れ替え
+                                    if (ippatsuIkuseiHai.scoreList[indices[j]] > ippatsuIkuseiHai.scoreList[indices[j - 1]])
+                                    {
+                                        int tmp = indices[j - 1];
+                                        indices[j - 1] = indices[j];
+                                        indices[j] = tmp;
+                                    }
+                                }
+                            }
 
                             //内訳出力
                             for (int i = 0; i < ippatsuIkuseiHai.nameList.Count; i++)
                             {
-                                output += ippatsuIkuseiHai.nameList[i] + "\t" + ippatsuIkuseiHai.scoreList[i] + "pt\n";
+                                output += ippatsuIkuseiHai.nameList[indices[i]] + "\t" + ippatsuIkuseiHai.scoreList[indices[i]] + "pt\n";
 
                                 //最高得点を記録
-                                if (ippatsuIkuseiHai.scoreList[i] > maxScore)
+                                if (ippatsuIkuseiHai.scoreList[indices[i]] > maxScore)
                                 {
-                                    maxScore = ippatsuIkuseiHai.scoreList[i];
+                                    maxScore = ippatsuIkuseiHai.scoreList[indices[i]];
                                 }
                             }
 
                             //優勝者をリストに入れる
                             for (int i = 0; i < ippatsuIkuseiHai.nameList.Count; i++)
                             {
-                                if (ippatsuIkuseiHai.scoreList[i] == maxScore)
+                                if (ippatsuIkuseiHai.scoreList[indices[i]] == maxScore)
                                 {
-                                    winnerList.Add(ippatsuIkuseiHai.nameList[i]);
+                                    winnerList.Add(ippatsuIkuseiHai.nameList[indices[i]]);
                                 }
                             }
 
@@ -915,6 +932,7 @@ namespace SmartFalcon
                         output += "第六回\tスペシャルウィーク(水着)\t中距離\tクマ\n";
                         output += "第七回\t無料単発で出たキャラ\tマイル\t椎名(マチカネフクキタル)\n";
                         output += "第八回\tゴールドシップ\t長距離\tクマ\n";
+                        output += "第九回\tナイスネイチャ\t中距離\tりゅう\tクマ\n";
 
                         await message.Channel.SendMessageAsync(output);
                     }
@@ -963,6 +981,11 @@ namespace SmartFalcon
                         //送信
                         await message.Channel.SendMessageAsync("エラーが発生したみたい...\nコマンド構文におかしいところがないかチェックしてみてね！");
                     }
+                }
+                else if (message.Content.Contains("誕生日") && message.Content.Contains("おめ"))
+                {
+                    //送信
+                    await message.Channel.SendMessageAsync("わぁ......！！！ありがとう～～～！！！☆\n今年もファル子のかわいさ、" + authorName + "に伝えちゃうよ～～♡");
                 }
             }
             else
