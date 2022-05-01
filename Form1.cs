@@ -12,6 +12,8 @@ using Discord.WebSocket;
 using System.Threading;
 using System.IO;
 using System.Linq;
+using Discord.Commands;
+using NPOI.SS.UserModel;
 
 namespace SmartFalcon
 {
@@ -207,6 +209,9 @@ namespace SmartFalcon
             {
                 return;
             }
+
+            SocketUserMessage msg = message as SocketUserMessage;
+            CommandContext context = new CommandContext(_client, msg);
 
             //自分へのメンションか
             bool isMention = message.Content.Contains(_client.CurrentUser.Id.ToString()) || message.Content.Contains(otherID.ToString()) ||
@@ -986,6 +991,62 @@ namespace SmartFalcon
                 {
                     //送信
                     await message.Channel.SendMessageAsync("わぁ......！！！ありがとう～～～！！！☆\n今年もファル子のかわいさ、" + authorName + "に伝えちゃうよ～～♡");
+                }
+                else if (message.Content.Contains("すけべしようや"))
+                {
+                    //18↑ロールを付与
+                    var role = context.Guild.Roles.FirstOrDefault(x => x.Name == "18↑");
+                    await (context.User as IGuildUser).AddRoleAsync(role);
+
+                    //送信
+                    await message.Channel.SendMessageAsync("も～～っ！そういうのはファル子的にOUT！！！\n※🔞チャンネルが解禁されました。やったね！");
+                }
+                else if (message.Content.Contains("先月") && message.Content.Contains("ファン数"))
+                {
+                    //Excelシート読み込み
+                    IWorkbook workbook = WorkbookFactory.Create(@"E:\Koushi\眠りの森_ファン数管理.xlsx");
+                    ISheet worksheet = workbook.GetSheetAt(1);
+
+                    //月取得
+                    IRow row = worksheet.GetRow(0);
+                    ICell cell = row.GetCell(6);
+                    string month = cell.NumericCellValue.ToString();
+
+                    //0行目にIDが書いてある
+                    for (int i = 0; i < 30; i++)
+                    {
+                        row = worksheet.GetRow(i);
+                        cell = row.GetCell(0);
+                        if (message.Author.Id.ToString() == cell.StringCellValue)
+                        {
+                            //推移
+                            if (message.Content.Contains("推移"))
+                            {
+                                cell = row.GetCell(3);
+
+                                string transition = cell.NumericCellValue.ToString();
+
+                                //送信
+                                await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン数推移は、" + transition + "人だよ！");
+                                
+                            }
+                            //ファン数
+                            else
+                            {
+                                cell = row.GetCell(2);
+
+                                string fan = cell.NumericCellValue.ToString();
+
+                                //送信
+                                await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン増加数は、" + fan + "人だよ！");
+                            }
+
+                            return;
+                        }
+                    }
+
+                    //送信
+                    await message.Channel.SendMessageAsync("ごめ～ん..." + authorName + "のDiscordのIDをコーシーに報告してもらってもいいかな？未登録みたい...");
                 }
             }
             else
