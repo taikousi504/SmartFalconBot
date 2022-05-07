@@ -30,6 +30,14 @@ botからのメッセージを除く全てのメッセージから反応しま�
 - 応答せよ
   
 </details>
+
+<details>
+<summary>ヘルプ表示</summary>
+  
+```@スマートファルコン 使い方```  
+このページへのリンクを返信します。
+
+</details>  
   
 <details>
 <summary>呼び名設定</summary>
