@@ -98,6 +98,7 @@ namespace SmartFalcon
             _client.Ready += onReady;
             _client.JoinedGuild += JoinedGuild;
             _client.MessageReceived += onMessage;
+            _client.UserJoined += UserJoined;
             //_client.UserVoiceStateUpdated += UserVoiceStateUpdated;
 
             //ログイン
@@ -105,6 +106,17 @@ namespace SmartFalcon
 
             //アプリケーション初期化
             InitializeComponent();
+        }
+
+        private Task UserJoined(SocketGuildUser user)
+        {
+            _client.GetGuild(serverID).GetTextChannel(842810363304869912).SendMessageAsync(
+                user.Mention + "こんにちはっ！眠りの森へようこそ！\n" +
+                "私はスマートファルコン！ファル子って呼んでね☆\n\n" +
+                "ファル子、いろ～んなことができるのっ！ぜひファル子をメンションして、\n" +
+                "```@スマートファルコン 使い方```\n" +
+                "って送ってみてね！");
+            return Task.CompletedTask;
         }
 
         private Task UserVoiceStateUpdated(SocketUser user, SocketVoiceState before, SocketVoiceState after)
