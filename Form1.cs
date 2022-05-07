@@ -1063,6 +1063,11 @@ namespace SmartFalcon
                     //送信
                     await message.Channel.SendMessageAsync("ごめ～ん..." + authorName + "のDiscordのIDをコーシーに報告してもらってもいいかな？未登録みたい...");
                 }
+                else if (message.Content.Contains("使い方") || message.Content.Contains("つかいかた"))
+                {
+                    //送信
+                    await message.Channel.SendMessageAsync("使い方はここを見てね！\nhttps://github.com/taikousi504/SmartFalconBot/blob/master/README.md");
+                }
             }
             else
             {
