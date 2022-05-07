@@ -1019,26 +1019,41 @@ namespace SmartFalcon
                         cell = row.GetCell(0);
                         if (message.Author.Id.ToString() == cell.StringCellValue)
                         {
-                            //推移
-                            if (message.Content.Contains("推移"))
+                            cell = row.GetCell(3);
+
+                            string transition = cell.NumericCellValue.ToString();
+
+                            //差分
+                            if (message.Content.Contains("差分"))
                             {
-                                cell = row.GetCell(3);
-
-                                string transition = cell.NumericCellValue.ToString();
-
-                                //送信
-                                await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン数推移は、" + transition + "人だよ！");
-                                
+                                try
+                                {
+                                    //ファン数読み取り
+                                    int start = message.Content.LastIndexOf(" ") + 1;
+                                    long fan = long.Parse(message.Content.Substring(start));
+                                    long oldFan = (long)row.GetCell(2).NumericCellValue;
+                                    long sub = fan - oldFan;
+                                    if (sub < 0)
+                                    {
+                                        //送信
+                                        await message.Channel.SendMessageAsync("ファン数指定には今現在のファン数を指定してね！");
+                                    }
+                                    else
+                                    {
+                                        //送信
+                                        await message.Channel.SendMessageAsync(month + "月末から現在までの獲得ファン数は、" + sub + "人だよ！");
+                                    }
+                                }
+                                catch (Exception e)
+                                {
+                                    //送信
+                                    await message.Channel.SendMessageAsync("ファン数をうまく読み込めなかったみたい...もう一度正しく入力してみてね！\n(例)「先月のファン数からの差分を教えて 123456789」");
+                                }
                             }
-                            //ファン数
                             else
                             {
-                                cell = row.GetCell(2);
-
-                                string fan = cell.NumericCellValue.ToString();
-
                                 //送信
-                                await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン増加数は、" + fan + "人だよ！");
+                                await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン数推移は、" + transition + "人だよ！");
                             }
 
                             return;
