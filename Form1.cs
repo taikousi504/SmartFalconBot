@@ -9,6 +9,13 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
 using System.Linq;
@@ -55,6 +62,8 @@ namespace SmartFalcon
         private IppatsuIkuseiHai ippatsuIkuseiHai = new IppatsuIkuseiHai();
 
         private bool bReady = false;
+
+        private readonly IConfiguration configration;
 
         public Form1()
         {

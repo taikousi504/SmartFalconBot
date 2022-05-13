@@ -363,3 +363,4 @@ MigrationBackup/
 FodyWeavers.xsd
 /SmartFalcon/Resources
 /Resources
+/appsettings.Development
