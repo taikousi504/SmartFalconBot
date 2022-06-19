@@ -21,6 +21,7 @@ using System.IO;
 using System.Linq;
 using Discord.Commands;
 using NPOI.SS.UserModel;
+using CoreTweet;
 
 namespace SmartFalcon
 {
@@ -64,6 +65,8 @@ namespace SmartFalcon
         private bool bReady = false;
 
         private readonly IConfiguration configration;
+
+        private Tokens tokens;
 
         public Form1()
         {
@@ -161,6 +164,17 @@ namespace SmartFalcon
 
             sr.Close();
             sr.Dispose();
+
+            //トークン取得
+            //token = configration.GetValue<string>("Token");
+
+            //Twitterトークン取得
+            tokens = Tokens.Create(
+                "IB6ZPMafSVxAeYhh5cj8LCMEj",
+                "Zv0JV0NhvZFbrAwjAc0lVyvVusBFSRw6XLXC4O2aut4LuAZk6r",
+                "1513921091667779587-LTEGu5a499TUlDXsrpFbQ4Vsku2ZGi",
+                "QaLCA2DnnB3xXSTQKBUIpIglizkCKdoqYySKcWctbnVye"
+                );
         }
 
         private async void Login()
@@ -196,6 +210,9 @@ namespace SmartFalcon
         private Task Log(LogMessage log)
         {
             Console.WriteLine(log.ToString());
+            StreamWriter sw = new StreamWriter("Resources/ErrorLog.txt");
+            sw.Write(log.ToString());
+            sw.Close();
             return Task.CompletedTask;
         }
 
@@ -1088,6 +1105,57 @@ namespace SmartFalcon
                 {
                     //送信
                     await message.Channel.SendMessageAsync("使い方はここを見てね！\nhttps://github.com/taikousi504/SmartFalconBot/blob/master/README.md");
+                }
+                //else if (message.Content.Contains("絵"))
+                //{
+                //    CoreTweet.SearchResult results = tokens.Search.Tweets(c => 100, q => "#ウマ娘", result_type => "recent");
+
+                //    foreach (var v in results)
+                //    {
+                //        if (v.Text.StartsWith("RT"))
+                //        {
+                //            continue;
+                //        }
+
+                //        //送信
+                //        await message.Channel.SendMessageAsync(v.Text);
+                //        break;
+                //    }
+
+                //}
+                else if (message.Content.Contains("四絵文字"))
+                {
+                    string text = message.Content.Substring(message.Content.IndexOf("四絵文字") + 5, 4);
+
+                    //ベースとなる画像読み込み
+                    System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/none.png");
+
+                    //imageからグラフィック読み込み
+                    Graphics graphics = Graphics.FromImage(img);
+
+                    //色
+                    Brush brush = new SolidBrush(System.Drawing.Color.FromArgb(255, 255, 255));
+
+                    //フォント読み込み
+                    Font fntBig = new Font("わんぱくルイカ-０７", 70);
+
+                    //文字描画
+                    graphics.DrawString(text.Substring(0,2), fntBig, brush, -10, 0);
+                    graphics.DrawString(text.Substring(2, 2), fntBig, brush, -10, 70 - 2);
+
+                    //保存
+                    string path = "Resources/tmp3.png";
+                    img.Save(path);
+
+                    //送信
+                    await message.Channel.SendFileAsync(path);
+
+                    //各種解放
+                    fntBig.Dispose();
+                    graphics.Dispose();
+                    img.Dispose();
+
+                    File.Delete(path);
                 }
             }
             else

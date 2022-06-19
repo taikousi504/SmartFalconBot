@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "SmartFalcon": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIROMENT": "Development"
+      }
+    }
+  }
+}

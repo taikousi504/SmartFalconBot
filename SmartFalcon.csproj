@@ -62,6 +62,7 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="CoreTweet" Version="1.0.0.483" />
     <PackageReference Include="Discord.Net">
       <Version>3.3.2</Version>
     </PackageReference>
