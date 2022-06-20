@@ -1126,15 +1126,69 @@ namespace SmartFalcon
                 else if (message.Content.Contains("四絵文字"))
                 {
                     string text = message.Content.Substring(message.Content.IndexOf("四絵文字") + 5, 4);
+                    //色
+                    Brush brush = new SolidBrush(System.Drawing.Color.FromArgb(255, 255, 255));
+                    string color = "白";
+
+                    if (message.Content.Substring(message.Content.IndexOf("四絵文字") + 5).Length >= 6)
+                    {
+                        color = message.Content.Substring(message.Content.IndexOf("四絵文字") + 5 + 5);
+
+                        if (color == "赤")
+                        {
+                            brush = Brushes.Red;
+                        }
+                        else if (color == "青")
+                        {
+                            brush = Brushes.Blue;
+                        }
+                        else if (color == "黄")
+                        {
+                            brush = Brushes.Yellow;
+                        }
+                        else if (color == "緑")
+                        {
+                            brush = Brushes.Green;
+                        }
+                        else if (color == "紫")
+                        {
+                            brush = Brushes.Purple;
+                        }
+                        else if (color == "オレンジ")
+                        {
+                            brush = Brushes.Orange;
+                        }
+                        else if (color == "黒")
+                        {
+                            brush = Brushes.Black;
+                        }
+                        else if (color == "ピンク")
+                        {
+                            brush = Brushes.Pink;
+                        }
+                        else if (color == "黄緑")
+                        {
+                            brush = Brushes.GreenYellow;
+                        }
+                        else if (color == "藍")
+                        {
+                            brush = Brushes.Navy;
+                        }
+                        else if (color == "グレー")
+                        {
+                            brush = Brushes.Gray;
+                        }
+                        else if (color == "茶")
+                        {
+                            brush = Brushes.Brown;
+                        }
+                    }
 
                     //ベースとなる画像読み込み
                     System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/none.png");
 
                     //imageからグラフィック読み込み
                     Graphics graphics = Graphics.FromImage(img);
-
-                    //色
-                    Brush brush = new SolidBrush(System.Drawing.Color.FromArgb(255, 255, 255));
 
                     //フォント読み込み
                     Font fntBig = new Font("わんぱくルイカ-０７", 70);
