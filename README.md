@@ -115,6 +115,7 @@ Twitter連携機能を使用していると、自動でTwitterに占い結果を
 
 </details>
 
+<details>
 <summary>文字絵文字生成機能</summary>
   
 ```@スマートファルコン 四絵文字 〇〇〇〇```  
