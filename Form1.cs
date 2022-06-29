@@ -13,15 +13,12 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Threading;
 using System.IO;
-using System.Linq;
 using Discord.Commands;
 using NPOI.SS.UserModel;
 using CoreTweet;
+using System.Net.Http;
 
 namespace SmartFalcon
 {
@@ -41,6 +38,13 @@ namespace SmartFalcon
         public int raceCount { get; set; }
     }
 
+    public class TwitterToken
+    {
+        public string accessToken { get; set; }
+        public string accessTokenSecret { get; set; }
+        public string isEnable { get; set; }
+    }
+
     public partial class Form1 : Form
     {
         //クライアント
@@ -58,7 +62,8 @@ namespace SmartFalcon
         private Dictionary<ulong, string> callNameList = new Dictionary<ulong, string>();
         //じゃんけんランキングリスト
         private Dictionary<ulong, JankenRankData> jankenRankList = new Dictionary<ulong, JankenRankData>();
-
+        //ツイッタートークンリスト
+        private Dictionary<ulong, TwitterToken> twitterTokenList = new Dictionary<ulong, TwitterToken>();
         //一発育成杯計算用
         private IppatsuIkuseiHai ippatsuIkuseiHai = new IppatsuIkuseiHai();
 
@@ -66,8 +71,9 @@ namespace SmartFalcon
 
         private readonly IConfiguration configration;
 
-        private Tokens tokens;
+        private Tokens twitterTokens;
 
+        private OAuth.OAuthSession session;
         public Form1()
         {
             //タスクバーに表示しない
@@ -99,6 +105,9 @@ namespace SmartFalcon
 
             //じゃんけんランク読み込み
             LoadJankenRank();
+
+            //TwitterToken読み込み
+            LoadTwitterToken();
 
             //一発育成杯リスト
             ippatsuIkuseiHai.nameList = new List<string>();
@@ -162,19 +171,21 @@ namespace SmartFalcon
             //1行目のみ使用
             token = sr.ReadLine();
 
-            sr.Close();
-            sr.Dispose();
-
-            //トークン取得
-            //token = configration.GetValue<string>("Token");
+            string consumerKey = sr.ReadLine();
+            string consumerSecret = sr.ReadLine();
+            string accessToken = sr.ReadLine();
+            string accessTokenSecret = sr.ReadLine();
 
             //Twitterトークン取得
-            tokens = Tokens.Create(
-                "IB6ZPMafSVxAeYhh5cj8LCMEj",
-                "Zv0JV0NhvZFbrAwjAc0lVyvVusBFSRw6XLXC4O2aut4LuAZk6r",
-                "1513921091667779587-LTEGu5a499TUlDXsrpFbQ4Vsku2ZGi",
-                "QaLCA2DnnB3xXSTQKBUIpIglizkCKdoqYySKcWctbnVye"
+            twitterTokens = Tokens.Create(
+                consumerKey,
+                consumerSecret,
+                accessToken,
+                accessTokenSecret
                 );
+
+            sr.Close();
+            sr.Dispose();
         }
 
         private async void Login()
@@ -193,8 +204,6 @@ namespace SmartFalcon
         async public void Interval(object sender, EventArgs e)
         {
             if (!bReady) { return; }
-
-
         }
 
         private void ManualPost(object sender, EventArgs e)
@@ -495,8 +504,134 @@ namespace SmartFalcon
                     //送信
                     await message.Channel.SendFileAsync(path);
 
+
+                    if (twitterTokenList.ContainsKey(message.Author.Id) && twitterTokenList[message.Author.Id].isEnable == "true")
+                    {
+                        var tokens = Tokens.Create(
+                             twitterTokens.ConsumerKey, 
+                             twitterTokens.ConsumerSecret,
+                             twitterTokenList[message.Author.Id].accessToken,
+                             twitterTokenList[message.Author.Id].accessTokenSecret
+                            );
+                        try
+                        {
+                            if (tokens != null)
+                            {
+                                //TwitterにUP
+                                MediaUploadResult upload_result = await tokens.Media.UploadAsync(media: new FileInfo(path));
+
+                                if (upload_result != null)
+                                {
+                                    var r = tokens.Statuses.Update(new
+                                    {
+                                        status = "#今日のファル子占い",
+                                        media_ids = new long[] { upload_result.MediaId }
+                                    });
+
+                                    if (r != null)
+                                    {
+                                        await message.Channel.SendMessageAsync("Twitterに「#今日のファル子占い」で投稿したよ！");
+                                    }
+                                }
+                            }
+                        }
+                        catch (TwitterException e)
+                        {
+                            //CoreTweetに関するエラー。
+                            Console.WriteLine(e.Message); //メッセージを表示する
+
+                            await message.Channel.SendMessageAsync("Twitterの投稿時にエラーが起きたみたい...ごめんね...");
+                        }
+                    }
+
                     //削除
                     File.Delete(path);
+                }
+                else if (message.Content.Contains("Twitter") && message.Content.Contains("連携"))
+                {
+                    if (message.Content.Contains("解除"))
+                    {
+                        if (twitterTokenList.ContainsKey(message.Author.Id))
+                        {
+                            twitterTokenList[message.Author.Id].isEnable = "false";
+                            await message.Channel.SendMessageAsync("Twitter連携を解除したよ！\n" +
+                                "またTwitterに投稿したくなったら、私をメンションして「Twitter再連携」と送ってね！");
+                        }
+                        else
+                        {
+                            await message.Channel.SendMessageAsync("Twitterが連携されてなかったみたい！");
+                        }
+                    }
+                    else if (message.Content.Contains("再連携"))
+                    {
+                        if (twitterTokenList.ContainsKey(message.Author.Id))
+                        {
+                            twitterTokenList[message.Author.Id].isEnable = "true";
+                            await message.Channel.SendMessageAsync("Twitter連携を再連携したよ！\n" +
+                                "またTwitter連携を解除したくなったら、私をメンションして「Twitter連携解除」と送ってね！");
+                        }
+                        else
+                        {
+                            await message.Channel.SendMessageAsync("Twitterが連携されてなかったみたい！");
+                        }
+                    }
+                    else
+                    {
+                        try
+                        {
+                            session = await OAuth.AuthorizeAsync(twitterTokens.ConsumerKey, twitterTokens.ConsumerSecret);
+                            //認証させる
+                            await message.Channel.SendMessageAsync("サイトからアプリケーションの認証をよろしくね！\n" +
+                                "PINコードを取得したら、私をメンションして「PIN 0000000」の形式で送ってね！");
+                            //認証リンク送信
+                            await message.Channel.SendMessageAsync(session.AuthorizeUri.AbsoluteUri);
+                        }
+                        catch (TwitterException e)
+                        {
+                            //CoreTweetに関するエラー。
+                            Console.WriteLine(e.Message); //メッセージを表示する
+
+                            await message.Channel.SendMessageAsync("認証システムにエラーが発生したみたい...時間をおいてもう一回試してみてくれるかな？");
+                        }
+                    }
+                }
+                else if (message.Content.Contains("PIN"))
+                {
+                    //数字抜き取り
+                    string pin = message.Content.Substring(message.Content.IndexOf("PIN") + 4);
+                    var tokens = OAuth.GetTokens(session, pin);
+
+                    if (tokens != null)
+                    {
+                        //既に存在していたら書き換え
+                        if (twitterTokenList.ContainsKey(message.Author.Id))
+                        {
+                            twitterTokenList[message.Author.Id].accessToken = tokens.AccessToken;
+                            twitterTokenList[message.Author.Id].accessTokenSecret = tokens.AccessTokenSecret;
+                            twitterTokenList[message.Author.Id].isEnable = "true";
+                        }
+                        //なければ追加
+                        else
+                        {
+                            TwitterToken data = new TwitterToken();
+                            data.accessToken = tokens.AccessToken;
+                            data.accessTokenSecret = tokens.AccessTokenSecret;
+                            data.isEnable = "true";
+                            twitterTokenList.Add(message.Author.Id, data);
+                        }
+
+                        SaveTwitterToken();
+
+                        LoadTwitterToken();
+
+                        await message.Channel.SendMessageAsync("Twitterの連携が完了したよ！占ったら自動でTwitterに投稿しちゃうね！\n" +
+                            "投稿をやめたいときは、私をメンションして「Twitter連携解除」と送ってね！");
+                    }
+                    else
+                    {
+                        await message.Channel.SendMessageAsync("認証に失敗したみたい...\n" +
+                            "PINコード、私宛のメッセージの形式が合ってるか確かめてみて！");
+                    }
                 }
                 else if (message.Content.Contains("慰めて"))
                 {
@@ -976,6 +1111,9 @@ namespace SmartFalcon
                         output += "第七回\t無料単発で出たキャラ\tマイル\t椎名(マチカネフクキタル)\n";
                         output += "第八回\tゴールドシップ\t長距離\tクマ\n";
                         output += "第九回\tナイスネイチャ\t中距離\tりゅう\tクマ\n";
+                        output += "第十回\tウイニングチケット\t中距離\tもっしーくん\n";
+                        output += "第十一回\tマヤノトップガン\t中距離\tおでん\n";
+                        output += "第十二回\tキタサンブラック\t長距離\tクマ\n";
 
                         await message.Channel.SendMessageAsync(output);
                     }
@@ -1042,7 +1180,7 @@ namespace SmartFalcon
                 else if (message.Content.Contains("先月") && message.Content.Contains("ファン数"))
                 {
                     //Excelシート読み込み
-                    IWorkbook workbook = WorkbookFactory.Create(@"E:\Koushi\眠りの森_ファン数管理.xlsx");
+                    IWorkbook workbook = WorkbookFactory.Create(@"C:\Users\kousi\Desktop\Kousi\眠りの森_ファン数管理.xlsx");
                     ISheet worksheet = workbook.GetSheetAt(1);
 
                     //月取得
@@ -1126,6 +1264,63 @@ namespace SmartFalcon
                 else if (message.Content.Contains("四絵文字"))
                 {
                     string text = message.Content.Substring(message.Content.IndexOf("四絵文字") + 5, 4);
+                    //色
+                    Brush brush = new SolidBrush(System.Drawing.Color.FromArgb(255, 255, 255));
+                    string color = "白";
+
+                    if (message.Content.Substring(message.Content.IndexOf("四絵文字") + 5).Length >= 6)
+                    {
+                        color = message.Content.Substring(message.Content.IndexOf("四絵文字") + 5 + 5);
+
+                        if (color == "赤")
+                        {
+                            brush = Brushes.Red;
+                        }
+                        else if (color == "青")
+                        {
+                            brush = Brushes.Blue;
+                        }
+                        else if (color == "黄")
+                        {
+                            brush = Brushes.Yellow;
+                        }
+                        else if (color == "緑")
+                        {
+                            brush = Brushes.Green;
+                        }
+                        else if (color == "紫")
+                        {
+                            brush = Brushes.Purple;
+                        }
+                        else if (color == "オレンジ")
+                        {
+                            brush = Brushes.Orange;
+                        }
+                        else if (color == "黒")
+                        {
+                            brush = Brushes.Black;
+                        }
+                        else if (color == "ピンク")
+                        {
+                            brush = Brushes.Pink;
+                        }
+                        else if (color == "黄緑")
+                        {
+                            brush = Brushes.GreenYellow;
+                        }
+                        else if (color == "藍")
+                        {
+                            brush = Brushes.Navy;
+                        }
+                        else if (color == "グレー")
+                        {
+                            brush = Brushes.Gray;
+                        }
+                        else if (color == "茶")
+                        {
+                            brush = Brushes.Brown;
+                        }
+                    }
 
                     //ベースとなる画像読み込み
                     System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/none.png");
@@ -1133,15 +1328,101 @@ namespace SmartFalcon
                     //imageからグラフィック読み込み
                     Graphics graphics = Graphics.FromImage(img);
 
-                    //色
-                    Brush brush = new SolidBrush(System.Drawing.Color.FromArgb(255, 255, 255));
-
                     //フォント読み込み
                     Font fntBig = new Font("わんぱくルイカ-０７", 70);
 
                     //文字描画
                     graphics.DrawString(text.Substring(0,2), fntBig, brush, -10, 0);
                     graphics.DrawString(text.Substring(2, 2), fntBig, brush, -10, 70 - 2);
+
+                    //保存
+                    string path = "Resources/tmp3.png";
+                    img.Save(path);
+
+                    //送信
+                    await message.Channel.SendFileAsync(path);
+
+                    //各種解放
+                    fntBig.Dispose();
+                    graphics.Dispose();
+                    img.Dispose();
+
+                    File.Delete(path);
+                }
+                else if (message.Content.Contains("九絵文字"))
+                {
+                    string text = message.Content.Substring(message.Content.IndexOf("九絵文字") + 5, 9);
+                    //色
+                    Brush brush = new SolidBrush(System.Drawing.Color.FromArgb(255, 255, 255));
+                    string color = "白";
+
+                    if (message.Content.Substring(message.Content.IndexOf("九絵文字") + 5).Length >= 11)
+                    {
+                        color = message.Content.Substring(message.Content.IndexOf("九絵文字") + 10 + 5);
+
+                        if (color == "赤")
+                        {
+                            brush = Brushes.Red;
+                        }
+                        else if (color == "青")
+                        {
+                            brush = Brushes.Blue;
+                        }
+                        else if (color == "黄")
+                        {
+                            brush = Brushes.Yellow;
+                        }
+                        else if (color == "緑")
+                        {
+                            brush = Brushes.Green;
+                        }
+                        else if (color == "紫")
+                        {
+                            brush = Brushes.Purple;
+                        }
+                        else if (color == "オレンジ")
+                        {
+                            brush = Brushes.Orange;
+                        }
+                        else if (color == "黒")
+                        {
+                            brush = Brushes.Black;
+                        }
+                        else if (color == "ピンク")
+                        {
+                            brush = Brushes.Pink;
+                        }
+                        else if (color == "黄緑")
+                        {
+                            brush = Brushes.GreenYellow;
+                        }
+                        else if (color == "藍")
+                        {
+                            brush = Brushes.Navy;
+                        }
+                        else if (color == "グレー")
+                        {
+                            brush = Brushes.Gray;
+                        }
+                        else if (color == "茶")
+                        {
+                            brush = Brushes.Brown;
+                        }
+                    }
+
+                    //ベースとなる画像読み込み
+                    System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/none.png");
+
+                    //imageからグラフィック読み込み
+                    Graphics graphics = Graphics.FromImage(img);
+
+                    //フォント読み込み
+                    Font fntBig = new Font("わんぱくルイカ-０７", 45);
+
+                    //文字描画
+                    graphics.DrawString(text.Substring(0, 3), fntBig, brush, -10, 0);
+                    graphics.DrawString(text.Substring(3, 3), fntBig, brush, -10, 45 - 2);
+                    graphics.DrawString(text.Substring(6, 3), fntBig, brush, -10, 90 - 2);
 
                     //保存
                     string path = "Resources/tmp3.png";
@@ -1299,7 +1580,7 @@ namespace SmartFalcon
                 string line = sr.ReadLine();
                 string[] str = line.Split(',');
 
-                //0番目にID、1番目に呼び名が入る
+                //0番目にID、1番目にポイントが入る
                 ulong id;
                 try
                 {
@@ -1383,6 +1664,68 @@ namespace SmartFalcon
             }
 
             return result;
+        }
+
+        //じゃんけんランキングロード
+        private void LoadTwitterToken()
+        {
+            //まずリストを空に。
+            twitterTokenList.Clear();
+
+            //ファイルがなかったらスルー
+            if (!File.Exists("Resources/TwitterTokenList.txt"))
+            {
+                return;
+            }
+
+            //ファイル読み込み
+            StreamReader sr = new StreamReader("Resources/TwitterTokenList.txt");
+
+            while (!sr.EndOfStream)
+            {
+                string line = sr.ReadLine();
+                string[] str = line.Split(',');
+
+                //0番目にID、1番目にaccessToken、2番目にaccessTokenSecret、3番目に有効か否かが入る
+                ulong id;
+                try
+                {
+                    id = ulong.Parse(str[0]);
+                }
+                catch (Exception e)
+                {
+                    id = 0;
+                }
+
+                string accessToken = str[1];
+                string accessTokenSecret = str[2];
+                string isEnable = str[3];
+
+                //追加
+                if (id != 0)
+                {
+                    TwitterToken data = new TwitterToken();
+                    data.accessToken = accessToken;
+                    data.accessTokenSecret = accessTokenSecret;
+                    data.isEnable = isEnable;
+                    twitterTokenList.Add(id, data);
+                }
+            }
+
+            sr.Close();
+            sr.Dispose();
+        }
+
+        //じゃんけんランキングセーブ
+        private void SaveTwitterToken()
+        {
+            StreamWriter sr = new StreamWriter("Resources/TwitterTokenList.txt");
+            foreach (var v in twitterTokenList)
+            {
+                sr.WriteLine(v.Key + "," + v.Value.accessToken + "," + v.Value.accessTokenSecret + "," + v.Value.isEnable);
+            }
+            sr.Close();
+            sr.Dispose();
         }
 
         private string GetRndUmaName(int num)
