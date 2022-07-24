@@ -53,6 +53,8 @@ namespace SmartFalcon
         public readonly ulong otherID = 944029368584388701;
         //サーバーID
         public readonly ulong serverID = 842810363304869909;
+        //俺のID
+        public readonly ulong myID = 351746025700196353;
         //トークン
         private string token = "";
         //静かにするモードか
@@ -74,6 +76,8 @@ namespace SmartFalcon
         private Tokens twitterTokens;
 
         private OAuth.OAuthSession session;
+
+        private bool isSleepKousi = false;
         public Form1()
         {
             //タスクバーに表示しない
@@ -493,8 +497,12 @@ namespace SmartFalcon
                     int seedDay = DateTime.Today.Year * 10000 + DateTime.Today.Month * 1000 + DateTime.Today.Day;
                     //メッセージの送り主によって決まる値
                     int seedID = (int)message.Author.Id % 9999;
+                    //攪乱させるための値
+                    int mixing1 = 20050404;
+                    int mixing2 = 6048;
+
                     //2つを足した値をシード値にする
-                    int seed = seedDay + seedID;
+                    int seed = seedDay + (seedID * mixing1) / mixing2;
 
 
                     //画像生成
@@ -579,6 +587,7 @@ namespace SmartFalcon
                     {
                         try
                         {
+                            session = null;
                             session = await OAuth.AuthorizeAsync(twitterTokens.ConsumerKey, twitterTokens.ConsumerSecret);
                             //認証させる
                             await message.Channel.SendMessageAsync("サイトからアプリケーションの認証をよろしくね！\n" +
@@ -1438,6 +1447,22 @@ namespace SmartFalcon
 
                     File.Delete(path);
                 }
+                else if (message.Content.Contains("寝るわ"))
+                {
+                    if (message.Author.Id == 351746025700196353)
+                    {
+                        isSleepKousi = true;
+                        await message.Channel.SendMessageAsync("おやすみ、こーしーくん！");
+                    }
+                }
+                else if (message.Content.Contains("起きるわ"))
+                {
+                    if (message.Author.Id == 351746025700196353)
+                    {
+                        isSleepKousi = false;
+                        await message.Channel.SendMessageAsync("おはよう、こーしーくん！");
+                    }
+                }
             }
             else
             {
@@ -1488,7 +1513,13 @@ namespace SmartFalcon
                         await message.Channel.SendMessageAsync("ちらっ...:eyes:");
                     }
                 }
-
+                else if (message.Content.Contains(myID.ToString()) || message.Content.Contains("@コーシー"))
+                {
+                    if (isSleepKousi)
+                    {
+                        await message.Channel.SendMessageAsync("コーシーくんは今ぐっすり寝てます！だから...そっとしておいてあげて？");
+                    }
+                }
 
                 //ランダムでリアクションを付ける
                 Random randReact = new Random();
@@ -1500,6 +1531,11 @@ namespace SmartFalcon
                     var emote = Emote.Parse("<:emoji_7:939189407016177684>");
 
                     await message.AddReactionAsync(emote);
+                }
+
+                if (isSleepKousi && message.Author.Id == myID)
+                {
+                    isSleepKousi = false;
                 }
 
             }
@@ -2159,12 +2195,13 @@ namespace SmartFalcon
             #region 占い結果生成
             //シード値から乱数生成 (日替わりで違う結果になる)
             Random rand = new Random(seed);
-            int num = rand.Next(0, 100);
+            int num;
 
             //送る文章
             string fortune,
                      comment,
                      chara,
+                     number,
                      field,
                      distance,
                      leg;
@@ -2202,55 +2239,55 @@ namespace SmartFalcon
             }
 
 
-            //超大吉 (1/100)
+            //超大吉
             if (allStarCount >= 16)
             {
                 fortune = "超大吉";
                 comment = "今日ガシャを引いたらもしかしちゃうかも！？！？";
             }
-            //大大吉 (5/100)
+            //大大吉
             else if (allStarCount >= 14)
             {
                 fortune = "大大吉";
                 comment = "今日はとってもいいことがあるかも！！";
             }
-            //大吉 (15/100)
+            //大吉
             else if (allStarCount >= 12)
             {
                 fortune = "大吉";
                 comment = "やった～！今日の運勢はバッチリ！";
             }
-            //中吉 (20/100)
+            //中吉
             else if (allStarCount >= 10)
             {
                 fortune = "中吉";
                 comment = "今日も元気にがんばろう～！";
             }
-            //吉 (25/100)
+            //吉
             else if (allStarCount >= 8)
             {
                 fortune = "吉";
                 comment = "今日も無事に一日を過ごせますように！";
             }
-            //小吉 (20/100)
+            //小吉
             else if (allStarCount >= 6)
             {
                 fortune = "小吉";
                 comment = "小さな幸せ、あるかも？";
             }
-            //凶 (10 /100)
+            //凶
             else if (allStarCount >= 4)
             {
                 fortune = "凶";
                 comment = "お、落ち込まないで！いいことあるよ...！きっと！";
             }
-            //大凶 (4 /100)
+            //大凶
             else if (allStarCount >= 2)
             {
                 fortune = "大凶";
                 comment = "今日は身の周りに注意かも...";
             }
-            //死 (1/100)
+            //死
             else
             {
                 fortune = "極凶";
@@ -2270,6 +2307,10 @@ namespace SmartFalcon
             {
                 chara = "Participants/" + (num - charaCount);
             }
+
+            //ラッキーナンバー (3桁)
+            num = rand.Next(0, 101);
+            number = num.ToString();
 
             //ラッキー適正
             //バ場
@@ -2392,7 +2433,13 @@ namespace SmartFalcon
             graphics.DrawString("ラッキーキャラ...", fntSmall, Brushes.SaddleBrown, basePosX, basePosY + 370);
 
             //画像貼り付け
-            graphics.DrawImage(imgChara, 751, 443, 96, 96);
+            graphics.DrawImage(imgChara, basePosX + 280, 443, 96, 96);
+
+            #endregion
+
+            #region ラッキーナンバー
+
+            graphics.DrawString("ラッキーナンバー..." + number, fntSmall, Brushes.SaddleBrown, basePosX + 280 + 96 + 20, basePosY + 370);
 
             #endregion
 
