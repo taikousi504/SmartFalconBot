@@ -532,7 +532,7 @@ namespace SmartFalcon
                     await message.Channel.SendFileAsync(path);
 
 
-                    if (false && twitterTokenList.ContainsKey(message.Author.Id) && twitterTokenList[message.Author.Id].isEnable == "true")
+                    if (twitterTokenList.ContainsKey(message.Author.Id) && twitterTokenList[message.Author.Id].isEnable == "true")
                     {
                         var tokens = Tokens.Create(
                              twitterTokens.ConsumerKey, 
