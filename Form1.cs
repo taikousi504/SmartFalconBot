@@ -514,7 +514,11 @@ namespace SmartFalcon
                     if (isNewYear)
                     {
                         string greeting = "こんにちは";
-                        if (DateTime.Now.Hour >= 5 && DateTime.Now.Hour < 10)
+                        if (DateTime.Now.Month == 1 && DateTime.Now.Day == 1)
+                        {
+                            greeting = "あけましておめでとうございます";
+                        }
+                        else if (DateTime.Now.Hour >= 5 && DateTime.Now.Hour < 10)
                         {
                             greeting = "おはようございます";
                         }
