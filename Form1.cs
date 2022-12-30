@@ -507,13 +507,32 @@ namespace SmartFalcon
 
                     //画像生成
                     string path = "Resources/tmp.png";
-                    CreateFortuneImg(authorName, seed, path);
+                    bool isNewYear = DateTime.Now.Month == 1 && DateTime.Now.Day <= 7;
+                    CreateFortuneImg(authorName, seed, path, isNewYear);
 
                     //送信
+                    if (isNewYear)
+                    {
+                        string greeting = "こんにちは";
+                        if (DateTime.Now.Hour >= 5 && DateTime.Now.Hour < 10)
+                        {
+                            greeting = "おはようございます";
+                        }
+                        else if (DateTime.Now.Hour >= 10 && DateTime.Now.Hour < 17)
+                        {
+                            greeting = "こんにちは";
+                        }
+                        else
+                        {
+                            greeting = "こんばんは";
+                        }
+
+                        await message.Channel.SendMessageAsync(greeting + "、" + message.Author.Username + "さん！\n新年なので、特別に1/1から7までファルコンさんに代わって私が占っちゃいますっ！");
+                    }
                     await message.Channel.SendFileAsync(path);
 
 
-                    if (twitterTokenList.ContainsKey(message.Author.Id) && twitterTokenList[message.Author.Id].isEnable == "true")
+                    if (false && twitterTokenList.ContainsKey(message.Author.Id) && twitterTokenList[message.Author.Id].isEnable == "true")
                     {
                         var tokens = Tokens.Create(
                              twitterTokens.ConsumerKey, 
@@ -532,13 +551,13 @@ namespace SmartFalcon
                                 {
                                     var r = tokens.Statuses.Update(new
                                     {
-                                        status = "#今日のファル子占い",
+                                        status = !isNewYear ? "#今日のファル子占い" : "今日のフクキタル占い",
                                         media_ids = new long[] { upload_result.MediaId }
                                     });
 
                                     if (r != null)
                                     {
-                                        await message.Channel.SendMessageAsync("Twitterに「#今日のファル子占い」で投稿したよ！");
+                                        await message.Channel.SendMessageAsync(!isNewYear ? "Twitterに「#今日のファル子占い」で投稿したよ！" : "Twitterに「#今日のフクキタル占い」で投稿しましたっ！");
                                     }
                                 }
                             }
@@ -2190,7 +2209,7 @@ namespace SmartFalcon
             ippatsuIkuseiHai.raceCount = 1;
             ippatsuIkuseiHai.isStart = false;
         }
-        private void CreateFortuneImg(string authorName, int seed, string dstPath)
+        private void CreateFortuneImg(string authorName, int seed, string dstPath, bool isNewYear = false)
         {
             #region 占い結果生成
             //シード値から乱数生成 (日替わりで違う結果になる)
@@ -2212,24 +2231,24 @@ namespace SmartFalcon
             for (int i = 0; i < starCount.Length; i++)
             {
                 //確率で0個～3個に分類
-                starCount[i] = rand.Next(0, 100);
+                starCount[i] = rand.Next(0, 1000);
 
-                //0個 (15%)
-                if (starCount[i] < 15)
+                //0個 (15% 新年は10%)
+                if (starCount[i] < (!isNewYear ? 150 : 100))
                 {
                     starCount[i] = 0;
                 }
-                //1個 (40%)
-                else if (starCount[i] < 55)
+                //1個 (30% 新年は25%)
+                else if (starCount[i] < (!isNewYear ? 450 : 350))
                 {
                     starCount[i] = 1;
                 }
-                //2個 (30%)
-                else if (starCount[i] < 85)
+                //2個 (35% 新年は35%)
+                else if (starCount[i] < (!isNewYear ? 800 : 700))
                 {
                     starCount[i] = 2;
                 }
-                //3個 (15%)
+                //3個 (20% 新年は30%)
                 else
                 {
                     starCount[i] = 3;
@@ -2243,55 +2262,55 @@ namespace SmartFalcon
             if (allStarCount >= 16)
             {
                 fortune = "超大吉";
-                comment = "今日ガシャを引いたらもしかしちゃうかも！？！？";
+                comment = !isNewYear ? "今日ガシャを引いたらもしかしちゃうかも！？！？" : "史上最高の一日になるでしょう！！！";
             }
             //大大吉
             else if (allStarCount >= 14)
             {
                 fortune = "大大吉";
-                comment = "今日はとってもいいことがあるかも！！";
+                comment = !isNewYear ? "今日はとってもいいことがあるかも！！" : "シラオキ様もびっくりの強運ですっ！！";
             }
             //大吉
             else if (allStarCount >= 12)
             {
                 fortune = "大吉";
-                comment = "やった～！今日の運勢はバッチリ！";
+                comment = !isNewYear ? "やった～！今日の運勢はバッチリ！" : "ハッピーカムカム～～～ッッ！";
             }
             //中吉
             else if (allStarCount >= 10)
             {
                 fortune = "中吉";
-                comment = "今日も元気にがんばろう～！";
+                comment = !isNewYear ? "今日も元気にがんばろう～！" : "さらに運勢が良くなるオマジナイをしておきますっ！";
             }
             //吉
             else if (allStarCount >= 8)
             {
                 fortune = "吉";
-                comment = "今日も無事に一日を過ごせますように！";
+                comment = !isNewYear ? "今日も無事に一日を過ごせますように！" : "一富士二鷹、三茄子～～...！";
             }
             //小吉
             else if (allStarCount >= 6)
             {
                 fortune = "小吉";
-                comment = "小さな幸せ、あるかも？";
+                comment = !isNewYear ? "小さな幸せ、あるかも？" : "笑う門にはフクキタル、ですっ！";
             }
             //凶
             else if (allStarCount >= 4)
             {
                 fortune = "凶";
-                comment = "お、落ち込まないで！いいことあるよ...！きっと！";
+                comment = !isNewYear ? "お、落ち込まないで！いいことあるよ...！きっと！" : "べ、別の占いを試してみますか！？";
             }
             //大凶
             else if (allStarCount >= 2)
             {
                 fortune = "大凶";
-                comment = "今日は身の周りに注意かも...";
+                comment = !isNewYear ? "今日は身の周りに注意かも..." : "ギャーーッ！！ は、はやく結ばなくてはっ！";
             }
             //死
             else
             {
                 fortune = "極凶";
-                comment = "今日はおうちから出ないほうがいいかもね...？";
+                comment = !isNewYear ? "今日はおうちから出ないほうがいいかもね...？" : "救いは...ないかもしれません...";
             }
 
             //ラッキーキャラ
@@ -2337,7 +2356,7 @@ namespace SmartFalcon
 
             //ベースとなる画像読み込み
             Random rand2 = new Random(DateTime.Now.Second);
-            System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/Fortune/Base_" + rand2.Next(3) + ".png");
+            System.Drawing.Image img = System.Drawing.Image.FromFile("Resources/Fortune/Base_" + (!isNewYear ? rand2.Next(4) : 4) + ".png");
             System.Drawing.Image imgInshiBase = System.Drawing.Image.FromFile("Resources/Fortune/Inshi_Base_4.png");
             System.Drawing.Image imgInshiStar = System.Drawing.Image.FromFile("Resources/Fortune/Inshi_Star.png");
             System.Drawing.Image imgTekisei = System.Drawing.Image.FromFile("Resources/Fortune/Tekisei.png");
