@@ -2458,7 +2458,16 @@ namespace SmartFalcon
 
             #region ラッキーナンバー
 
-            graphics.DrawString("ラッキーナンバー..." + number, fntSmall, Brushes.SaddleBrown, basePosX + 280 + 96 + 20, basePosY + 370);
+            if (!isNewYear)
+            {
+                graphics.DrawString("ラッキーナンバー..." + number, fntSmall, Brushes.SaddleBrown, basePosX + 280 + 96 + 20, basePosY + 370);
+            }
+            else
+            {
+                int hour = rand.Next(0, 24);
+                int minute = rand.Next(0, 60);
+                graphics.DrawString("ガシャの引き時...\n　　　　　" + hour + "時" + minute + "分ごろ", fntSmall, Brushes.SaddleBrown, basePosX + 280 + 96 + 20, basePosY + 370);
+            }
 
             #endregion
 
