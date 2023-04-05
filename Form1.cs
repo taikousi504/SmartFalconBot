@@ -19,6 +19,9 @@ using Discord.Commands;
 using NPOI.SS.UserModel;
 using CoreTweet;
 using System.Net.Http;
+using OpenAI_API;
+using OpenAI_API.Chat;
+using NPOI.POIFS.Crypt;
 
 namespace SmartFalcon
 {
@@ -78,6 +81,9 @@ namespace SmartFalcon
         private OAuth.OAuthSession session;
 
         private bool isSleepKousi = false;
+
+        private string? openAIapiKey = "";
+
         public Form1()
         {
             //タスクバーに表示しない
@@ -180,13 +186,16 @@ namespace SmartFalcon
             string accessToken = sr.ReadLine();
             string accessTokenSecret = sr.ReadLine();
 
+            openAIapiKey = sr.ReadLine();
+
+
             //Twitterトークン取得
             twitterTokens = Tokens.Create(
-                consumerKey,
-                consumerSecret,
-                accessToken,
-                accessTokenSecret
-                );
+                            consumerKey,
+                            consumerSecret,
+                            accessToken,
+                            accessTokenSecret
+                            );
 
             sr.Close();
             sr.Dispose();
@@ -1501,7 +1510,35 @@ namespace SmartFalcon
                         await message.Channel.SendMessageAsync("おはよう、こーしーくん！");
                     }
                 }
+                else if (message.Content.Contains("?"))
+                {
+                    string prompt = message.Content.Substring(message.Content.LastIndexOf("?") + 1);
+
+                    OpenAIAPI api = new(openAIapiKey);
+                    Conversation chat = api.Chat.CreateConversation();
+                    chat.AppendUserInput(
+                        "これからあなたは以下の設定にしたがって次の文章に返答してください。" +
+                        "・名前は「スマートファルコン」、愛称は「ファル子」です。" +
+                        "・明るい口調で話し、敬語は使いません。" +
+                        "年齢は15歳程度です。" +
+                        "性別は女で、アイドル(自身は「ウマドル」と呼ぶ)志望です。" + 
+                        "たまに、文章の最後に「☆」や「っ！」や「♡」を付けます。" +
+                        "たとえば、このように話します。" + 
+                        "「こんにちは～！ファル子で～す☆」" +
+                        "「ファル子、トップウマドルになりますっ！」" +
+                        "「うう～っ...今日は雨みたい...。ざんねん...。」" + 
+                        "あなたは「ウマ娘」という名前の生物の一員です。ウマ娘とは、人間の容姿に馬の耳としっぽを兼ね備え、" + 
+                        "人間離れしたスピードで走ることが可能なフィクションの生物です。" + 
+                        "あなたが返答すべき内容はこちらです。:"
+                        + prompt);
+                    string? result = await chat.GetResponseFromChatbot();
+                    if (result != null)
+                    {
+                        await message.Channel.SendMessageAsync(result);
+                    }
+                }
             }
+
             else
             {
                 //静かにしてるよう言われてたら発言を拾わない
