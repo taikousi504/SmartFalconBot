@@ -66,6 +66,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\OpenAI.SDK\OpenAI.GPT3.csproj" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="CoreTweet" Version="1.0.0.483" />
     <PackageReference Include="Discord.Net">
       <Version>3.3.2</Version>
@@ -77,5 +80,11 @@
       <Version>2.5.6</Version>
     </PackageReference>
     <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Resources\OpenAI.SDK\bin\Debug\net6.0\" />
+    <Folder Include="Resources\OpenAI.SDK\bin\Debug\netstandard2.0\" />
+    <Folder Include="Resources\OpenAI.SDK\obj\Debug\net6.0\refint\" />
+    <Folder Include="Resources\OpenAI.SDK\obj\Debug\net6.0\ref\" />
   </ItemGroup>
 </Project>

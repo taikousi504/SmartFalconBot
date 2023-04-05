@@ -555,7 +555,7 @@ namespace SmartFalcon
                                 {
                                     var r = tokens.Statuses.Update(new
                                     {
-                                        status = !isNewYear ? "#今日のファル子占い" : "今日のフクキタル占い",
+                                        status = !isNewYear ? "#今日のファル子占い" : "#今日のフクキタル占い",
                                         media_ids = new long[] { upload_result.MediaId }
                                     });
 
@@ -1229,39 +1229,54 @@ namespace SmartFalcon
                         {
                             cell = row.GetCell(3);
 
-                            string transition = cell.NumericCellValue.ToString();
-
-                            //差分
-                            if (message.Content.Contains("差分"))
+                            string transition = "";
+                            try
                             {
-                                try
+                                transition = cell.NumericCellValue.ToString();
+                            }
+                            catch {
+                                transition = "error";
+                            }
+
+                            if (transition != "error")
+                            {
+                                //差分
+                                if (message.Content.Contains("差分"))
                                 {
-                                    //ファン数読み取り
-                                    int start = message.Content.LastIndexOf(" ") + 1;
-                                    long fan = long.Parse(message.Content.Substring(start));
-                                    long oldFan = (long)row.GetCell(2).NumericCellValue;
-                                    long sub = fan - oldFan;
-                                    if (sub < 0)
+                                    try
                                     {
-                                        //送信
-                                        await message.Channel.SendMessageAsync("ファン数指定には今現在のファン数を指定してね！");
+                                        //ファン数読み取り
+                                        int start = message.Content.LastIndexOf(" ") + 1;
+                                        long fan = long.Parse(message.Content.Substring(start));
+                                        long oldFan = (long)row.GetCell(2).NumericCellValue;
+                                        long sub = fan - oldFan;
+                                        if (sub < 0)
+                                        {
+                                            //送信
+                                            await message.Channel.SendMessageAsync("ファン数指定には今現在のファン数を指定してね！");
+                                        }
+                                        else
+                                        {
+                                            //送信
+                                            await message.Channel.SendMessageAsync(month + "月末から現在までの獲得ファン数は、" + sub + "人だよ！");
+                                        }
                                     }
-                                    else
+                                    catch (Exception e)
                                     {
                                         //送信
-                                        await message.Channel.SendMessageAsync(month + "月末から現在までの獲得ファン数は、" + sub + "人だよ！");
+                                        await message.Channel.SendMessageAsync("ファン数をうまく読み込めなかったみたい...もう一度正しく入力してみてね！\n(例)「先月のファン数からの差分を教えて 123456789」");
                                     }
                                 }
-                                catch (Exception e)
+                                else
                                 {
                                     //送信
-                                    await message.Channel.SendMessageAsync("ファン数をうまく読み込めなかったみたい...もう一度正しく入力してみてね！\n(例)「先月のファン数からの差分を教えて 123456789」");
+                                    await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン数推移は、" + transition + "人だよ！");
                                 }
                             }
                             else
                             {
                                 //送信
-                                await message.Channel.SendMessageAsync(month + "月の" + authorName + "の月間ファン数推移は、" + transition + "人だよ！");
+                                await message.Channel.SendMessageAsync("データが登録されていないみたい！\nコーシーちゃんに今月のファン数を申告して登録してもらってね！");
                             }
 
                             return;
